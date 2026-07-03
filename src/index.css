@@ -24,99 +24,136 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   GLASS SYSTEM — clean frosted blur surfaces with no glossy
-   pseudo-element overlays. Simple, modern, and high-contrast.
+   iOS 26 LIQUID GLASS SYSTEM
+   Premium frosted-glass with layered specular highlights, soft
+   inner glow, and adaptive translucency for light & dark modes.
    ═══════════════════════════════════════════════════════════════ */
 
 @layer components {
-  /* ── Core glass surface (light background) ──────────────────── */
+  /* ── Liquid glass — light surface ─────────────────────────────
+     Frosted blur with a top specular highlight and soft ambient
+     shadow. The inset white line at the top simulates light
+     catching the edge of the glass. */
   .glass {
-    background: rgba(255, 255, 255, 0.72);
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(30px) saturate(190%);
+    -webkit-backdrop-filter: blur(30px) saturate(190%);
+    border: 1px solid rgba(255, 255, 255, 0.50);
+    box-shadow:
+      0 1px 1px 0 rgba(255, 255, 255, 0.90) inset,
+      0 -1px 1px 0 rgba(0, 0, 0, 0.03) inset,
+      0 8px 32px -8px rgba(0, 0, 0, 0.12),
+      0 2px 8px -4px rgba(0, 0, 0, 0.06);
+  }
+
+  /* ── Liquid glass — dark surface ──────────────────────────────
+     Deeper blur with a subtle top specular highlight. The inset
+     light line at the top catches ambient light on dark glass. */
+  .glass-dark {
+    background: rgba(12, 12, 14, 0.52);
+    backdrop-filter: blur(30px) saturate(170%);
+    -webkit-backdrop-filter: blur(30px) saturate(170%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow:
+      0 1px 1px 0 rgba(255, 255, 255, 0.14) inset,
+      0 -1px 1px 0 rgba(0, 0, 0, 0.20) inset,
+      0 8px 32px -8px rgba(0, 0, 0, 0.60),
+      0 2px 8px -4px rgba(0, 0, 0, 0.35);
+  }
+
+  /* ── Liquid glass — sidebar (dark, persistent) ────────────────
+     Slightly more opaque than glass-dark for readability of nav
+     text over varied page content. */
+  .glass-sidebar {
+    background: rgba(14, 14, 16, 0.68);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+      0 1px 0 0 rgba(255, 255, 255, 0.10) inset,
+      4px 0 32px -8px rgba(0, 0, 0, 0.40);
+  }
+
+  /* ── Liquid glass — topbar (light, sticky) ────────────────────
+     Lighter translucency so content scrolls beneath with a
+     subtle frosted tint. */
+  .glass-topbar {
+    background: rgba(255, 255, 255, 0.60);
     backdrop-filter: blur(24px) saturate(180%);
     -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     box-shadow:
-      0 1px 0 0 rgba(255, 255, 255, 0.8) inset,
-      0 4px 24px -4px rgba(0, 0, 0, 0.10),
-      0 1px 6px -2px rgba(0, 0, 0, 0.06);
+      0 1px 0 0 rgba(255, 255, 255, 0.80) inset,
+      0 4px 16px -8px rgba(0, 0, 0, 0.06);
   }
 
-  /* ── Dark glass surface (dark background) ─────────────────────
-     Used on hero sections / dark page areas. */
-  .glass-dark {
-    background: rgba(10, 10, 10, 0.72);
-    backdrop-filter: blur(24px) saturate(160%);
-    -webkit-backdrop-filter: blur(24px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.10);
-    box-shadow:
-      0 1px 0 0 rgba(255, 255, 255, 0.08) inset,
-      0 4px 24px -4px rgba(0, 0, 0, 0.50),
-      0 1px 6px -2px rgba(0, 0, 0, 0.30);
-  }
-
-  /* ── Glass button — light ───────────────────────────────────── */
+  /* ── Liquid glass button — light ────────────────────────────── */
   .glass-btn {
-    background: rgba(255, 255, 255, 0.72);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(20px) saturate(190%);
+    -webkit-backdrop-filter: blur(20px) saturate(190%);
+    border: 1px solid rgba(255, 255, 255, 0.55);
     box-shadow:
-      0 1px 0 0 rgba(255, 255, 255, 0.8) inset,
-      0 4px 16px -6px rgba(0, 0, 0, 0.12),
-      0 1px 4px -2px rgba(0, 0, 0, 0.08);
-    transition: all 0.25s cubic-bezier(0.32, 0.72, 0, 1);
-    will-change: transform, box-shadow;
+      0 1px 1px 0 rgba(255, 255, 255, 0.90) inset,
+      0 4px 16px -6px rgba(0, 0, 0, 0.10),
+      0 1px 4px -2px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    will-change: transform, box-shadow, background;
   }
   .glass-btn:hover {
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.70);
     box-shadow:
-      0 1px 0 0 rgba(255, 255, 255, 0.95) inset,
-      0 8px 24px -8px rgba(0, 0, 0, 0.18),
-      0 2px 8px -2px rgba(0, 0, 0, 0.10);
+      0 1px 1px 0 rgba(255, 255, 255, 1) inset,
+      0 8px 24px -8px rgba(0, 0, 0, 0.16),
+      0 2px 8px -2px rgba(0, 0, 0, 0.08);
     transform: translateY(-1px);
   }
   .glass-btn:active {
     transform: translateY(0) scale(0.97);
     box-shadow:
-      0 1px 0 0 rgba(255, 255, 255, 0.8) inset,
-      0 2px 8px -4px rgba(0, 0, 0, 0.10);
+      0 1px 1px 0 rgba(255, 255, 255, 0.80) inset,
+      0 2px 8px -4px rgba(0, 0, 0, 0.08);
   }
 
-  /* ── Glass button — dark ────────────────────────────────────── */
+  /* ── Liquid glass button — dark ─────────────────────────────── */
   .glass-btn-dark {
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(16px) saturate(160%);
-    -webkit-backdrop-filter: blur(16px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    box-shadow: 0 4px 16px -6px rgba(0, 0, 0, 0.4);
-    transition: all 0.25s cubic-bezier(0.32, 0.72, 0, 1);
-    will-change: transform, box-shadow;
+    background: rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(20px) saturate(170%);
+    -webkit-backdrop-filter: blur(20px) saturate(170%);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow:
+      0 1px 1px 0 rgba(255, 255, 255, 0.16) inset,
+      0 4px 16px -6px rgba(0, 0, 0, 0.40);
+    transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    will-change: transform, box-shadow, background;
   }
   .glass-btn-dark:hover {
-    background: rgba(255, 255, 255, 0.20);
-    box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.5);
+    background: rgba(255, 255, 255, 0.18);
+    box-shadow:
+      0 1px 1px 0 rgba(255, 255, 255, 0.22) inset,
+      0 8px 24px -8px rgba(0, 0, 0, 0.50);
     transform: translateY(-1px);
   }
   .glass-btn-dark:active {
     transform: translateY(0) scale(0.97);
   }
 
-  /* ── Glass card ─────────────────────────────────────────────── */
+  /* ── Liquid glass card ──────────────────────────────────────── */
   .glass-card {
-    background: rgba(255, 255, 255, 0.72);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.60);
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(28px) saturate(190%);
+    -webkit-backdrop-filter: blur(28px) saturate(190%);
+    border: 1px solid rgba(255, 255, 255, 0.50);
     box-shadow:
-      0 1px 0 0 rgba(255, 255, 255, 0.8) inset,
+      0 1px 1px 0 rgba(255, 255, 255, 0.90) inset,
       0 12px 40px -12px rgba(0, 0, 0, 0.12),
       0 4px 12px -6px rgba(0, 0, 0, 0.06);
-    transition: all 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
     will-change: transform, box-shadow;
   }
   .glass-card:hover {
     box-shadow:
-      0 1px 0 0 rgba(255, 255, 255, 0.95) inset,
+      0 1px 1px 0 rgba(255, 255, 255, 1) inset,
       0 20px 50px -12px rgba(0, 0, 0, 0.16),
       0 6px 16px -6px rgba(0, 0, 0, 0.08);
     transform: translateY(-2px);
@@ -127,7 +164,33 @@
     backdrop-filter: blur(12px) saturate(180%);
     -webkit-backdrop-filter: blur(12px) saturate(180%);
     border: 1px solid transparent;
-    transition: all 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+    transition: all 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  /* ── Glass nav item — active state (dark sidebar) ─────────────
+     A frosted highlight pill for the active nav link, simulating
+     light pressing through the glass. */
+  .glass-nav-active {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow:
+      0 1px 1px 0 rgba(255, 255, 255, 0.14) inset,
+      0 2px 8px -4px rgba(0, 0, 0, 0.30);
+  }
+
+  /* ── Glass mobile sheet ───────────────────────────────────────
+     A floating frosted panel for the mobile dropdown menu. */
+  .glass-sheet {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(40px) saturate(200%);
+    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.60);
+    box-shadow:
+      0 1px 1px 0 rgba(255, 255, 255, 0.95) inset,
+      0 24px 64px -16px rgba(0, 0, 0, 0.18),
+      0 8px 24px -8px rgba(0, 0, 0, 0.10);
   }
 }
 

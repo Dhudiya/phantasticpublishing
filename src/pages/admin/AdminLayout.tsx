@@ -100,7 +100,7 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen bg-neutral-50 flex">
       {/* Sidebar — desktop */}
-      <aside className="hidden lg:flex w-64 flex-col fixed inset-y-0 left-0 bg-neutral-950 border-r border-neutral-800/60">
+      <aside className="hidden lg:flex w-64 flex-col fixed inset-y-0 left-0 glass-sidebar">
         <SidebarContent visibleNav={visibleNav} onSignOut={handleSignOut} />
       </aside>
 
@@ -108,13 +108,13 @@ export default function AdminLayout() {
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-[3px] transition-opacity duration-300"
             onClick={() => setSidebarOpen(false)}
           />
-          <aside className="relative w-64 flex flex-col bg-neutral-950 border-r border-neutral-800/60 animate-menu-item">
+          <aside className="relative w-64 flex flex-col glass-sidebar animate-menu-item">
             <button
               onClick={() => setSidebarOpen(false)}
-              className="absolute top-4 right-4 text-neutral-500 hover:text-white transition-colors"
+              className="absolute top-4 right-4 text-neutral-500 hover:text-white transition-colors z-10"
             >
               <X size={18} />
             </button>
@@ -126,12 +126,12 @@ export default function AdminLayout() {
       {/* Main */}
       <div className="flex-1 lg:ml-64 flex flex-col min-w-0">
         {/* Topbar */}
-        <header className="sticky top-0 z-40 bg-white border-b border-neutral-100">
+        <header className="sticky top-0 z-40 glass-topbar">
           <div className="flex items-center justify-between px-4 sm:px-6 h-14">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 transition-all duration-200"
+                className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center text-neutral-500 hover:text-neutral-900 hover:bg-neutral-900/5 transition-all duration-300"
               >
                 <Menu size={20} />
               </button>
@@ -144,7 +144,7 @@ export default function AdminLayout() {
               <Link
                 to="/"
                 target="_blank"
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 transition-all duration-200"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-neutral-500 hover:text-neutral-900 hover:bg-neutral-900/5 transition-all duration-300"
               >
                 View site <ExternalLink size={12} />
               </Link>
@@ -152,7 +152,7 @@ export default function AdminLayout() {
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen((v) => !v)}
-                  className="flex items-center gap-2 pl-1.5 pr-2.5 py-1.5 rounded-lg hover:bg-neutral-100 transition-all duration-200"
+                  className="flex items-center gap-2 pl-1.5 pr-2.5 py-1.5 rounded-lg hover:bg-neutral-900/5 transition-all duration-300"
                 >
                   <div className="w-7 h-7 rounded-full bg-neutral-900 text-white flex items-center justify-center text-[11px] font-semibold shrink-0">
                     {(profile.full_name.charAt(0) || "A").toUpperCase()}
@@ -163,30 +163,28 @@ export default function AdminLayout() {
                   </div>
                   <ChevronDown
                     size={13}
-                    className={`text-neutral-400 transition-transform duration-200 ${userMenuOpen ? "rotate-180" : ""}`}
+                    className={`text-neutral-400 transition-transform duration-300 ${userMenuOpen ? "rotate-180" : ""}`}
                   />
                 </button>
 
                 {/* User dropdown */}
                 <div
                   className={`
-                    absolute right-0 top-full mt-1.5 w-48
-                    bg-white border border-neutral-200 rounded-xl
-                    shadow-lg shadow-black/8
-                    py-1 z-50
-                    transition-all duration-200 origin-top-right
+                    absolute right-0 top-full mt-1.5 w-52
+                    glass-sheet rounded-2xl py-1 z-50
+                    transition-all duration-300 origin-top-right
                     ${userMenuOpen
                       ? "opacity-100 scale-100 translate-y-0"
                       : "opacity-0 scale-95 -translate-y-1 pointer-events-none"}
                   `}
                 >
-                  <div className="px-4 py-2.5 border-b border-neutral-100">
+                  <div className="px-4 py-2.5 border-b border-neutral-100/60">
                     <p className="text-xs font-semibold text-neutral-900 truncate">{profile.full_name}</p>
                     <p className="text-[10px] text-neutral-400 truncate mt-0.5">{user.email}</p>
                   </div>
                   <button
                     onClick={handleSignOut}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors"
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-neutral-600 hover:bg-neutral-900/5 hover:text-neutral-900 transition-colors duration-200"
                   >
                     <LogOut size={13} /> Sign out
                   </button>
@@ -214,7 +212,7 @@ function SidebarContent({
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="px-5 h-14 flex items-center border-b border-neutral-800/60 shrink-0">
+      <div className="px-5 h-14 flex items-center border-b border-white/8 shrink-0">
         <Logo variant="dark" />
       </div>
 
@@ -226,10 +224,10 @@ function SidebarContent({
             to={item.to}
             end={item.to === "/admin"}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ${
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-300 ${
                 isActive
-                  ? "bg-white/10 text-white"
-                  : "text-neutral-400 hover:text-white hover:bg-white/6"
+                  ? "glass-nav-active text-white"
+                  : "text-neutral-400 hover:text-white hover:bg-white/8"
               }`
             }
           >
@@ -240,10 +238,10 @@ function SidebarContent({
       </nav>
 
       {/* Sign out */}
-      <div className="px-3 py-4 border-t border-neutral-800/60 shrink-0">
+      <div className="px-3 py-4 border-t border-white/8 shrink-0">
         <button
           onClick={onSignOut}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-neutral-500 hover:text-white hover:bg-white/6 transition-all duration-200"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-neutral-500 hover:text-white hover:bg-white/8 transition-all duration-300"
         >
           <LogOut size={16} /> Sign out
         </button>

@@ -45,12 +45,22 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3">
           <nav
             className={`
-              flex items-center justify-between px-4 sm:px-6 h-16
+              relative flex items-center justify-between px-4 sm:px-6 h-16
               rounded-2xl
               transition-all duration-500 ease-out
               ${onDarkBg ? "glass-dark" : "glass"}
             `}
           >
+            {/* Specular highlight — light catching the top edge of the glass */}
+            <span
+              className="pointer-events-none absolute inset-x-4 top-0 h-px"
+              style={{
+                background: onDarkBg
+                  ? "linear-gradient(90deg, transparent 10%, rgba(255,255,255,0.30) 50%, transparent 90%)"
+                  : "linear-gradient(90deg, transparent 10%, rgba(255,255,255,0.95) 50%, transparent 90%)",
+              }}
+            />
+
             {/* Logo */}
             <Link
               to="/"
@@ -68,15 +78,15 @@ export default function Header() {
                     key={link.to}
                     to={link.to}
                     className={`
-                      px-4 py-2 text-[13px] font-medium tracking-wide rounded-full
+                      relative px-4 py-2 text-[13px] font-medium tracking-wide rounded-full
                       transition-all duration-300 ease-out
                       ${active
                         ? onDarkBg
-                          ? "bg-white/20 text-white border border-white/25"
+                          ? "glass-nav-active text-white"
                           : "bg-neutral-900 text-white shadow-sm"
                         : onDarkBg
-                        ? "text-white/65 hover:text-white hover:bg-white/12 glass-pill"
-                        : "text-neutral-500 hover:text-neutral-900 hover:bg-neutral-900/6 glass-pill"
+                        ? "text-white/65 hover:text-white hover:bg-white/10 glass-pill"
+                        : "text-neutral-500 hover:text-neutral-900 hover:bg-neutral-900/5 glass-pill"
                       }
                     `}
                   >
@@ -89,10 +99,10 @@ export default function Header() {
             {/* Mobile toggle */}
             <button
               className={`
-                md:hidden w-10 h-10 rounded-xl flex items-center justify-center
-                transition-all duration-200 active:scale-90
+                relative md:hidden w-10 h-10 rounded-xl flex items-center justify-center
+                transition-all duration-300 active:scale-90
                 ${onDarkBg
-                  ? "text-white hover:bg-white/12"
+                  ? "text-white hover:bg-white/10"
                   : "text-neutral-700 hover:bg-neutral-900/8"
                 }
               `}
@@ -125,15 +135,15 @@ export default function Header() {
       <div
         className={`
           fixed inset-0 z-40 md:hidden
-          transition-all duration-400
+          transition-all duration-500
           ${mobileOpen ? "visible" : "invisible pointer-events-none"}
         `}
       >
         {/* Backdrop */}
         <div
           className={`
-            absolute inset-0 bg-black/30 backdrop-blur-[2px]
-            transition-opacity duration-400
+            absolute inset-0 bg-black/20 backdrop-blur-[3px]
+            transition-opacity duration-500
             ${mobileOpen ? "opacity-100" : "opacity-0"}
           `}
           onClick={closeMobile}
@@ -143,14 +153,11 @@ export default function Header() {
         <div
           className={`
             absolute top-[76px] left-3 right-3
-            bg-white/90 backdrop-blur-2xl
-            border border-white/60
-            rounded-3xl p-2
-            shadow-2xl shadow-black/10
-            transition-all duration-400 ease-[cubic-bezier(0.32,0.72,0,1)]
+            glass-sheet rounded-3xl p-2
+            transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
             ${mobileOpen
               ? "opacity-100 translate-y-0 scale-100"
-              : "opacity-0 -translate-y-3 scale-[0.96]"}
+              : "opacity-0 -translate-y-4 scale-[0.95]"}
           `}
         >
           <div className="space-y-0.5">
@@ -163,17 +170,17 @@ export default function Header() {
                   onClick={closeMobile}
                   className={`
                     flex items-center px-4 py-3.5 rounded-2xl text-[15px] font-medium
-                    transition-all duration-200
+                    transition-all duration-300
                     ${active
                       ? "bg-neutral-950 text-white"
-                      : "text-neutral-700 hover:bg-neutral-100 active:scale-[0.98]"
+                      : "text-neutral-700 hover:bg-neutral-900/5 active:scale-[0.98]"
                     }
                   `}
                   style={{
-                    transitionDelay: mobileOpen ? `${i * 35}ms` : "0ms",
-                    transform: mobileOpen ? "translateY(0)" : "translateY(-4px)",
+                    transitionDelay: mobileOpen ? `${i * 40}ms` : "0ms",
+                    transform: mobileOpen ? "translateY(0)" : "translateY(-6px)",
                     opacity: mobileOpen ? 1 : 0,
-                    transition: `opacity 0.3s ease ${i * 35}ms, transform 0.3s ease ${i * 35}ms, background-color 0.2s`,
+                    transition: `opacity 0.4s ease ${i * 40}ms, transform 0.4s ease ${i * 40}ms, background-color 0.2s`,
                   }}
                 >
                   {link.label}
