@@ -16,20 +16,20 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { to: "/admin", label: "Dashboard", icon: <LayoutDashboard size={18} />, roles: ["super_admin", "admin", "editor"] },
-  { to: "/admin/pages", label: "Site Pages", icon: <LayoutTemplate size={18} />, roles: ["super_admin", "admin", "editor"] },
-  { to: "/admin/books", label: "Books", icon: <BookOpen size={18} />, roles: ["super_admin", "admin", "editor"] },
-  { to: "/admin/authors", label: "Authors", icon: <UserCircle size={18} />, roles: ["super_admin", "admin", "editor"] },
-  { to: "/admin/services", label: "Services", icon: <PenTool size={18} />, roles: ["super_admin", "admin", "editor"] },
-  { to: "/admin/testimonials", label: "Testimonials", icon: <Quote size={18} />, roles: ["super_admin", "admin", "editor"] },
-  { to: "/admin/team", label: "Team", icon: <Users size={18} />, roles: ["super_admin", "admin", "editor"] },
-  { to: "/admin/content", label: "Custom Content", icon: <FileText size={18} />, roles: ["super_admin", "admin", "editor"] },
-  { to: "/admin/media", label: "Media", icon: <Image size={18} />, roles: ["super_admin", "admin", "editor"] },
-  { to: "/admin/inquiries", label: "Inquiries", icon: <Inbox size={18} />, roles: ["super_admin", "admin", "editor"] },
-  { to: "/admin/analytics", label: "Analytics", icon: <BarChart3 size={18} />, roles: ["super_admin", "admin", "editor"] },
-  { to: "/admin/users", label: "Users", icon: <Users size={18} />, roles: ["super_admin"] },
-  { to: "/admin/settings", label: "Settings", icon: <Settings size={18} />, roles: ["super_admin", "admin"] },
-  { to: "/admin/theme", label: "Theme", icon: <Palette size={18} />, roles: ["super_admin", "admin"] },
+  { to: "/admin",             label: "Dashboard",     icon: <LayoutDashboard size={17} />, roles: ["super_admin", "admin", "editor"] },
+  { to: "/admin/pages",       label: "Site Pages",    icon: <LayoutTemplate size={17} />,  roles: ["super_admin", "admin", "editor"] },
+  { to: "/admin/books",       label: "Books",         icon: <BookOpen size={17} />,        roles: ["super_admin", "admin", "editor"] },
+  { to: "/admin/authors",     label: "Authors",       icon: <UserCircle size={17} />,      roles: ["super_admin", "admin", "editor"] },
+  { to: "/admin/services",    label: "Services",      icon: <PenTool size={17} />,         roles: ["super_admin", "admin", "editor"] },
+  { to: "/admin/testimonials",label: "Testimonials",  icon: <Quote size={17} />,           roles: ["super_admin", "admin", "editor"] },
+  { to: "/admin/team",        label: "Team",          icon: <Users size={17} />,           roles: ["super_admin", "admin", "editor"] },
+  { to: "/admin/content",     label: "Custom Content",icon: <FileText size={17} />,        roles: ["super_admin", "admin", "editor"] },
+  { to: "/admin/media",       label: "Media",         icon: <Image size={17} />,           roles: ["super_admin", "admin", "editor"] },
+  { to: "/admin/inquiries",   label: "Inquiries",     icon: <Inbox size={17} />,           roles: ["super_admin", "admin", "editor"] },
+  { to: "/admin/analytics",   label: "Analytics",     icon: <BarChart3 size={17} />,       roles: ["super_admin", "admin", "editor"] },
+  { to: "/admin/users",       label: "Users",         icon: <Users size={17} />,           roles: ["super_admin"] },
+  { to: "/admin/settings",    label: "Settings",      icon: <Settings size={17} />,        roles: ["super_admin", "admin"] },
+  { to: "/admin/theme",       label: "Theme",         icon: <Palette size={17} />,         roles: ["super_admin", "admin"] },
 ];
 
 const roleLabel: Record<AdminRole, string> = {
@@ -46,9 +46,7 @@ export default function AdminLayout() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate("/admin/login", { replace: true });
-    }
+    if (!loading && !user) navigate("/admin/login", { replace: true });
   }, [loading, user, navigate]);
 
   useEffect(() => {
@@ -56,33 +54,9 @@ export default function AdminLayout() {
     setUserMenuOpen(false);
   }, [location.pathname]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-50">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-neutral-200 border-t-neutral-900 rounded-full animate-spin" />
-          <p className="text-sm text-neutral-400">Loading…</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
-
-  // Profile may still be auto-creating after a fresh login — show a loader
-  // instead of a blank page so the user isn't stranded.
-  if (!profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-50">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-neutral-200 border-t-neutral-900 rounded-full animate-spin" />
-          <p className="text-sm text-neutral-400">Setting up your account…</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <LoadingScreen message="Loading…" />;
+  if (!user) return null;
+  if (!profile) return <LoadingScreen message="Setting up your account…" />;
 
   if (!profile.active) {
     return (
@@ -92,7 +66,7 @@ export default function AdminLayout() {
           <p className="text-neutral-500 text-sm mb-6">
             Your admin account has been deactivated. Contact a super admin to restore access.
           </p>
-          <button onClick={() => signOut()} className="text-sm font-medium underline">
+          <button onClick={() => signOut()} className="text-sm font-medium underline hover:text-neutral-600 transition-colors">
             Sign out
           </button>
         </div>
@@ -107,23 +81,42 @@ export default function AdminLayout() {
     navigate("/admin/login");
   };
 
+  const pageLabel =
+    navItems.find((n) => n.to === location.pathname)?.label ||
+    (location.pathname.startsWith("/admin/pages")        ? "Site Pages" :
+     location.pathname.startsWith("/admin/books")        ? "Books" :
+     location.pathname.startsWith("/admin/authors")      ? "Authors" :
+     location.pathname.startsWith("/admin/services")     ? "Services" :
+     location.pathname.startsWith("/admin/testimonials") ? "Testimonials" :
+     location.pathname.startsWith("/admin/team")         ? "Team" :
+     location.pathname.startsWith("/admin/content")      ? "Custom Content" :
+     location.pathname.startsWith("/admin/media")        ? "Media" :
+     location.pathname.startsWith("/admin/inquiries")    ? "Inquiries" :
+     location.pathname.startsWith("/admin/analytics")    ? "Analytics" :
+     location.pathname.startsWith("/admin/users")        ? "Users" :
+     location.pathname.startsWith("/admin/settings")     ? "Settings" :
+     location.pathname.startsWith("/admin/theme")        ? "Theme" : "Dashboard");
+
   return (
     <div className="min-h-screen bg-neutral-50 flex">
       {/* Sidebar — desktop */}
-      <aside className="hidden lg:flex w-64 flex-col fixed inset-y-0 left-0 glass-dark rounded-r-3xl">
+      <aside className="hidden lg:flex w-64 flex-col fixed inset-y-0 left-0 bg-neutral-950 border-r border-neutral-800/60">
         <SidebarContent visibleNav={visibleNav} onSignOut={handleSignOut} />
       </aside>
 
       {/* Sidebar — mobile drawer */}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
-          <aside className="relative w-64 flex flex-col bg-neutral-950 text-white animate-menu-item">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setSidebarOpen(false)}
+          />
+          <aside className="relative w-64 flex flex-col bg-neutral-950 border-r border-neutral-800/60 animate-menu-item">
             <button
               onClick={() => setSidebarOpen(false)}
-              className="absolute top-4 right-4 text-neutral-400 hover:text-white"
+              className="absolute top-4 right-4 text-neutral-500 hover:text-white transition-colors"
             >
-              <X size={20} />
+              <X size={18} />
             </button>
             <SidebarContent visibleNav={visibleNav} onSignOut={handleSignOut} />
           </aside>
@@ -133,76 +126,77 @@ export default function AdminLayout() {
       {/* Main */}
       <div className="flex-1 lg:ml-64 flex flex-col min-w-0">
         {/* Topbar */}
-        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-neutral-200">
-          <div className="flex items-center justify-between px-4 sm:px-6 h-16">
+        <header className="sticky top-0 z-40 bg-white border-b border-neutral-100">
+          <div className="flex items-center justify-between px-4 sm:px-6 h-14">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden text-neutral-600 hover:text-neutral-900"
+                className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 transition-all duration-200"
               >
-                <Menu size={22} />
+                <Menu size={20} />
               </button>
-              <h2 className="font-serif text-lg font-bold text-neutral-900 hidden sm:block">
-                {navItems.find((n) => n.to === location.pathname)?.label ||
-                  (location.pathname.startsWith("/admin/pages") ? "Site Pages" :
-                   location.pathname.startsWith("/admin/books") ? "Books" :
-                   location.pathname.startsWith("/admin/authors") ? "Authors" :
-                   location.pathname.startsWith("/admin/services") ? "Services" :
-                   location.pathname.startsWith("/admin/testimonials") ? "Testimonials" :
-                   location.pathname.startsWith("/admin/team") ? "Team" :
-                   location.pathname.startsWith("/admin/content") ? "Custom Content" :
-                   location.pathname.startsWith("/admin/media") ? "Media" :
-                   location.pathname.startsWith("/admin/inquiries") ? "Inquiries" :
-                   location.pathname.startsWith("/admin/analytics") ? "Analytics" :
-                   location.pathname.startsWith("/admin/users") ? "Users" :
-                   location.pathname.startsWith("/admin/settings") ? "Settings" :
-                   location.pathname.startsWith("/admin/theme") ? "Theme" : "Dashboard")}
-              </h2>
+              <span className="font-semibold text-sm text-neutral-900 hidden sm:block tracking-tight">
+                {pageLabel}
+              </span>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <Link
                 to="/"
                 target="_blank"
-                className="hidden sm:inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-900 transition-colors"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 transition-all duration-200"
               >
-                View site <ExternalLink size={14} />
+                View site <ExternalLink size={12} />
               </Link>
 
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen((v) => !v)}
-                  className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-lg hover:bg-neutral-100 transition-colors"
+                  className="flex items-center gap-2 pl-1.5 pr-2.5 py-1.5 rounded-lg hover:bg-neutral-100 transition-all duration-200"
                 >
-                  <div className="w-8 h-8 rounded-full bg-neutral-900 text-white flex items-center justify-center text-xs font-medium">
-                    {profile.full_name.charAt(0).toUpperCase() || "A"}
+                  <div className="w-7 h-7 rounded-full bg-neutral-900 text-white flex items-center justify-center text-[11px] font-semibold shrink-0">
+                    {(profile.full_name.charAt(0) || "A").toUpperCase()}
                   </div>
                   <div className="hidden sm:block text-left">
-                    <p className="text-sm font-medium text-neutral-900 leading-tight">{profile.full_name}</p>
+                    <p className="text-xs font-semibold text-neutral-900 leading-tight">{profile.full_name}</p>
                     <p className="text-[10px] text-neutral-400 leading-tight">{roleLabel[profile.role]}</p>
                   </div>
-                  <ChevronDown size={14} className="text-neutral-400" />
+                  <ChevronDown
+                    size={13}
+                    className={`text-neutral-400 transition-transform duration-200 ${userMenuOpen ? "rotate-180" : ""}`}
+                  />
                 </button>
-                {userMenuOpen && (
-                  <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-neutral-200 rounded-xl shadow-lg py-1 z-50">
-                    <div className="px-4 py-2 border-b border-neutral-100">
-                      <p className="text-sm font-medium text-neutral-900 truncate">{profile.full_name}</p>
-                      <p className="text-xs text-neutral-400 truncate">{user.email}</p>
-                    </div>
-                    <button
-                      onClick={handleSignOut}
-                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors"
-                    >
-                      <LogOut size={15} /> Sign out
-                    </button>
+
+                {/* User dropdown */}
+                <div
+                  className={`
+                    absolute right-0 top-full mt-1.5 w-48
+                    bg-white border border-neutral-200 rounded-xl
+                    shadow-lg shadow-black/8
+                    py-1 z-50
+                    transition-all duration-200 origin-top-right
+                    ${userMenuOpen
+                      ? "opacity-100 scale-100 translate-y-0"
+                      : "opacity-0 scale-95 -translate-y-1 pointer-events-none"}
+                  `}
+                >
+                  <div className="px-4 py-2.5 border-b border-neutral-100">
+                    <p className="text-xs font-semibold text-neutral-900 truncate">{profile.full_name}</p>
+                    <p className="text-[10px] text-neutral-400 truncate mt-0.5">{user.email}</p>
                   </div>
-                )}
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors"
+                  >
+                    <LogOut size={13} /> Sign out
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
+        <main key={location.pathname} className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden page-enter">
           <Outlet />
         </main>
       </div>
@@ -219,20 +213,23 @@ function SidebarContent({
 }) {
   return (
     <div className="flex flex-col h-full">
-      <div className="px-6 h-16 flex items-center border-b border-white/10">
+      {/* Logo */}
+      <div className="px-5 h-14 flex items-center border-b border-neutral-800/60 shrink-0">
         <Logo variant="dark" />
       </div>
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+
+      {/* Nav */}
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {visibleNav.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             end={item.to === "/admin"}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ${
                 isActive
                   ? "bg-white/10 text-white"
-                  : "text-neutral-400 hover:text-white hover:bg-white/5"
+                  : "text-neutral-400 hover:text-white hover:bg-white/6"
               }`
             }
           >
@@ -241,13 +238,26 @@ function SidebarContent({
           </NavLink>
         ))}
       </nav>
-      <div className="px-3 py-4 border-t border-white/10">
+
+      {/* Sign out */}
+      <div className="px-3 py-4 border-t border-neutral-800/60 shrink-0">
         <button
           onClick={onSignOut}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-400 hover:text-white hover:bg-white/5 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-neutral-500 hover:text-white hover:bg-white/6 transition-all duration-200"
         >
-          <LogOut size={18} /> Sign out
+          <LogOut size={16} /> Sign out
         </button>
+      </div>
+    </div>
+  );
+}
+
+function LoadingScreen({ message }: { message: string }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-neutral-50">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-7 h-7 border-2 border-neutral-200 border-t-neutral-900 rounded-full animate-spin" />
+        <p className="text-xs text-neutral-400">{message}</p>
       </div>
     </div>
   );

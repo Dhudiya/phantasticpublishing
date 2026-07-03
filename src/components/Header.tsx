@@ -19,31 +19,25 @@ export default function Header() {
   const isHome = location.pathname === "/";
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    // Read initial scroll position
+    setScrolled(window.scrollY > 24);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close menu on route change
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [location.pathname]);
+  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
 
-  // Lock body scroll when menu is open
   useEffect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
   }, [mobileOpen]);
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
-  const useDarkText = scrolled || !isHome;
+  // On the home page (before scrolling) the hero is dark, so use light text.
+  // Everywhere else (scrolled or non-home) the header is on a light glass → dark text.
+  const onDarkBg = isHome && !scrolled;
 
   return (
     <>
@@ -54,22 +48,19 @@ export default function Header() {
               flex items-center justify-between px-4 sm:px-6 h-16
               rounded-2xl
               transition-all duration-500 ease-out
-              ${
-                scrolled
-                  ? "glass"
-                  : isHome
-                  ? "glass-dark"
-                  : "glass"
-              }
+              ${onDarkBg ? "glass-dark" : "glass"}
             `}
           >
             {/* Logo */}
-            <Link to="/" className="group shrink-0 transition-transform duration-300 group-hover:scale-[1.03]">
-              <Logo variant="auto" onDark={!useDarkText} />
+            <Link
+              to="/"
+              className="shrink-0 transition-transform duration-300 hover:scale-[1.03] active:scale-[0.97]"
+            >
+              <Logo variant="auto" onDark={onDarkBg} />
             </Link>
 
-            {/* Desktop nav links */}
-            <div className="hidden md:flex items-center gap-1">
+            {/* Desktop nav */}
+            <div className="hidden md:flex items-center gap-0.5">
               {navLinks.map((link) => {
                 const active = location.pathname === link.to;
                 return (
@@ -77,16 +68,15 @@ export default function Header() {
                     key={link.to}
                     to={link.to}
                     className={`
-                      relative px-4 py-2 text-[13px] font-medium tracking-wide rounded-full
+                      px-4 py-2 text-[13px] font-medium tracking-wide rounded-full
                       transition-all duration-300 ease-out
-                      ${
-                        active
-                          ? useDarkText
-                            ? "text-white bg-neutral-900 shadow-[0_2px_8px_rgba(0,0,0,0.2)]"
-                            : "text-white glass-pill bg-white/25 border-white/30"
-                          : useDarkText
-                          ? "text-neutral-500 hover:text-neutral-900 glass-pill hover:bg-white/60 hover:border-white/70"
-                          : "text-white/70 hover:text-white glass-pill hover:bg-white/15 hover:border-white/25"
+                      ${active
+                        ? onDarkBg
+                          ? "bg-white/20 text-white border border-white/25"
+                          : "bg-neutral-900 text-white shadow-sm"
+                        : onDarkBg
+                        ? "text-white/65 hover:text-white hover:bg-white/12 glass-pill"
+                        : "text-neutral-500 hover:text-neutral-900 hover:bg-neutral-900/6 glass-pill"
                       }
                     `}
                   >
@@ -96,63 +86,74 @@ export default function Header() {
               })}
             </div>
 
-            {/* Mobile menu button */}
+            {/* Mobile toggle */}
             <button
-              className="md:hidden w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 active:scale-90"
-              onClick={() => setMobileOpen((prev) => !prev)}
+              className={`
+                md:hidden w-10 h-10 rounded-xl flex items-center justify-center
+                transition-all duration-200 active:scale-90
+                ${onDarkBg
+                  ? "text-white hover:bg-white/12"
+                  : "text-neutral-700 hover:bg-neutral-900/8"
+                }
+              `}
+              onClick={() => setMobileOpen((v) => !v)}
               aria-label="Toggle menu"
               aria-expanded={mobileOpen}
             >
-              <div
-                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 glass-pill ${
-                  useDarkText
-                    ? "hover:bg-white/60 hover:border-white/70"
-                    : "hover:bg-white/15 hover:border-white/25"
-                }`}
+              <span
+                className={`
+                  absolute transition-all duration-300
+                  ${mobileOpen ? "opacity-100 rotate-0" : "opacity-0 rotate-90"}
+                `}
               >
-                {mobileOpen ? (
-                  <X
-                    size={20}
-                    className={`transition-transform duration-300 ${useDarkText ? "text-neutral-900" : "text-white"}`}
-                  />
-                ) : (
-                  <Menu
-                    size={20}
-                    className={`transition-transform duration-300 ${useDarkText ? "text-neutral-900" : "text-white"}`}
-                  />
-                )}
-              </div>
+                <X size={20} />
+              </span>
+              <span
+                className={`
+                  absolute transition-all duration-300
+                  ${mobileOpen ? "opacity-0 -rotate-90" : "opacity-100 rotate-0"}
+                `}
+              >
+                <Menu size={20} />
+              </span>
             </button>
           </nav>
         </div>
       </header>
 
-      {/* iOS 26 mobile menu overlay */}
+      {/* Mobile menu overlay */}
       <div
-        className={`fixed inset-0 z-40 md:hidden transition-all duration-500 ${
-          mobileOpen ? "visible" : "invisible pointer-events-none"
-        }`}
+        className={`
+          fixed inset-0 z-40 md:hidden
+          transition-all duration-400
+          ${mobileOpen ? "visible" : "invisible pointer-events-none"}
+        `}
       >
         {/* Backdrop */}
         <div
-          className={`absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity duration-500 ${
-            mobileOpen ? "opacity-100" : "opacity-0"
-          }`}
+          className={`
+            absolute inset-0 bg-black/30 backdrop-blur-[2px]
+            transition-opacity duration-400
+            ${mobileOpen ? "opacity-100" : "opacity-0"}
+          `}
           onClick={closeMobile}
         />
 
         {/* Sheet */}
         <div
           className={`
-            absolute top-20 left-3 right-3
-            glass
-            rounded-3xl
-            p-3
-            transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
-            ${mobileOpen ? "opacity-100 translate-y-0 scale-100" : "opacity-0 -translate-y-4 scale-[0.97]"}
+            absolute top-[76px] left-3 right-3
+            bg-white/90 backdrop-blur-2xl
+            border border-white/60
+            rounded-3xl p-2
+            shadow-2xl shadow-black/10
+            transition-all duration-400 ease-[cubic-bezier(0.32,0.72,0,1)]
+            ${mobileOpen
+              ? "opacity-100 translate-y-0 scale-100"
+              : "opacity-0 -translate-y-3 scale-[0.96]"}
           `}
         >
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {navLinks.map((link, i) => {
               const active = location.pathname === link.to;
               return (
@@ -161,16 +162,19 @@ export default function Header() {
                   to={link.to}
                   onClick={closeMobile}
                   className={`
-                    flex items-center gap-3 px-4 py-3.5 rounded-2xl text-[15px] font-medium
-                    transition-all duration-300 ease-out
-                    ${
-                      active
-                        ? "bg-neutral-900 text-white"
-                        : "text-neutral-700 hover:bg-neutral-100/80 active:scale-[0.98]"
+                    flex items-center px-4 py-3.5 rounded-2xl text-[15px] font-medium
+                    transition-all duration-200
+                    ${active
+                      ? "bg-neutral-950 text-white"
+                      : "text-neutral-700 hover:bg-neutral-100 active:scale-[0.98]"
                     }
-                    ${mobileOpen ? "animate-menu-item" : ""}
                   `}
-                  style={{ animationDelay: `${i * 40}ms` }}
+                  style={{
+                    transitionDelay: mobileOpen ? `${i * 35}ms` : "0ms",
+                    transform: mobileOpen ? "translateY(0)" : "translateY(-4px)",
+                    opacity: mobileOpen ? 1 : 0,
+                    transition: `opacity 0.3s ease ${i * 35}ms, transform 0.3s ease ${i * 35}ms, background-color 0.2s`,
+                  }}
                 >
                   {link.label}
                 </Link>
