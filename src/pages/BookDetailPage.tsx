@@ -18,11 +18,11 @@ export default function BookDetailPage() {
   if (loading) return (
     <div className="pt-32 pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-        <div className="animate-pulse grid md:grid-cols-5 lg:grid-cols-2 gap-8 md:gap-12">
-          <div className="md:col-span-2 lg:col-span-1">
-            <div className="aspect-[3/4] bg-neutral-200 rounded-lg max-w-[260px] mx-auto md:mx-0" />
+        <div className="animate-pulse grid md:grid-cols-5 gap-8 md:gap-12">
+          <div className="md:col-span-2">
+            <div className="aspect-[3/4] bg-neutral-200 rounded-lg max-w-[240px] mx-auto md:mx-0" />
           </div>
-          <div className="md:col-span-3 lg:col-span-1 space-y-3">
+          <div className="md:col-span-3 space-y-3">
             <div className="h-3 bg-neutral-200 rounded w-1/4" />
             <div className="h-7 bg-neutral-200 rounded w-3/4" />
             <div className="h-4 bg-neutral-200 rounded w-1/2" />
@@ -58,18 +58,17 @@ export default function BookDetailPage() {
           </Link>
 
           {/*
-           * Grid layout:
-           *   md  → 2-of-5 + 3-of-5  (cover slightly smaller than info)
-           *   lg  → 1-of-2 + 1-of-2  (50/50 — large cover on big screens)
-           * Mobile: single column, cover centred
+           * Grid layout (desktop only — mobile single column):
+           *   md/lg/xl → 2-of-5 cover + 3-of-5 info (balanced 40/60 split)
+           * The cover wrapper caps at 280px so it doesn't fill the full column.
            */}
-          <div className="grid md:grid-cols-5 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 xl:gap-20">
+          <div className="grid md:grid-cols-5 gap-8 md:gap-10 lg:gap-14 xl:gap-16">
 
             {/* ── Cover column ──────────────────────────────────── */}
-            <Reveal className="md:col-span-2 lg:col-span-1">
+            <Reveal className="md:col-span-2">
               <div className="flex flex-col items-center md:items-start">
-                {/* 3D book — constrained on mobile, full column on desktop */}
-                <div className="w-full max-w-[220px] sm:max-w-[260px] md:max-w-none">
+                {/* 3D book — centred on mobile, left-aligned + capped on desktop */}
+                <div className="w-full max-w-[220px] sm:max-w-[260px] md:max-w-[240px] lg:max-w-[270px] xl:max-w-[290px] mx-auto md:mx-0">
                   <BookCover3D src={book.cover_image} alt={book.title} />
                 </div>
 
@@ -85,7 +84,7 @@ export default function BookDetailPage() {
             </Reveal>
 
             {/* ── Info column ───────────────────────────────────── */}
-            <Reveal delay={150} className="md:col-span-3 lg:col-span-1">
+            <Reveal delay={150} className="md:col-span-3">
               <div>
                 {/* Genre */}
                 <p className="text-[10px] sm:text-xs text-neutral-400 uppercase tracking-wider mb-1.5 sm:mb-2">
