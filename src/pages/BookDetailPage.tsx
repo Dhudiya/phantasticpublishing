@@ -47,15 +47,20 @@ export default function BookDetailPage() {
             <span className="sm:hidden">Back</span>
           </Link>
 
-          <div className="grid md:grid-cols-5 gap-6 sm:gap-8 md:gap-10 lg:gap-16">
+          <div className="grid md:grid-cols-5 gap-6 sm:gap-8 md:gap-14 lg:gap-20">
             <Reveal className="md:col-span-2">
-              <div className="mx-auto md:mx-0 max-w-[260px] sm:max-w-[300px] md:max-w-none">
-                <BookCover3D src={book.cover_image} alt={book.title} />
-                <PlatformBadges
-                  googleBooksUrl={book.google_books_url}
-                  appleBooksUrl={book.apple_books_url}
-                  amazonKindleUrl={book.amazon_kindle_url}
-                />
+              {/* Book cover — extra horizontal padding so the rotated 3D book doesn't clip */}
+              <div className="flex flex-col items-center md:items-start">
+                <div className="w-full max-w-[240px] sm:max-w-[280px] md:max-w-[320px] px-6 md:px-8">
+                  <BookCover3D src={book.cover_image} alt={book.title} />
+                </div>
+                <div className="mt-5 sm:mt-6 w-full max-w-[260px] sm:max-w-[300px] md:max-w-none">
+                  <PlatformBadges
+                    googleBooksUrl={book.google_books_url}
+                    appleBooksUrl={book.apple_books_url}
+                    amazonKindleUrl={book.amazon_kindle_url}
+                  />
+                </div>
               </div>
             </Reveal>
 
