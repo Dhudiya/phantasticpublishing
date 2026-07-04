@@ -150,21 +150,21 @@ export default function BookCover3D({ src, alt, className = "" }: BookCover3DPro
           }}
         >
           {/* ── 1. Front cover ──────────────────────────────────────── */}
-          <div className="relative overflow-hidden rounded-r-[2px]">
-            {/* Shimmer placeholder */}
+          <div className="relative overflow-hidden rounded-r-[2px]" style={{ minHeight: "160px" }}>
+            {/* Shimmer placeholder shown until image loads */}
             {!loaded && (
-              <div className="absolute inset-0 bg-neutral-200 animate-pulse">
+              <div className="absolute inset-0 bg-neutral-200 animate-pulse" style={{ minHeight: "160px" }}>
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer" />
               </div>
             )}
 
+            {/* Image renders at its natural aspect ratio — no forced 3:4 crop/contain */}
             <img
               src={src}
               alt={alt}
               onLoad={() => setLoaded(true)}
               draggable={false}
               className={`block w-full h-auto transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
-              style={{ aspectRatio: "3/4", objectFit: "contain", display: "block" }}
             />
 
             {/* Constant top-edge specular — gives the cover a slight sheen */}

@@ -3,7 +3,7 @@ import { supabase } from "../../lib/supabase";
 import {
   Card, PageHeader, Button, Input, Textarea, Spinner,
 } from "../../admin/ui";
-import { Save, Check, Globe, Search, Share2, Layout, Image as ImageIcon, Plus, Trash2 } from "lucide-react";
+import { Save, Check, Globe, Search, Share2, Layout, Image as ImageIcon, Plus, Trash2, BookOpen } from "lucide-react";
 
 interface FooterLink { label: string; url: string; }
 
@@ -18,9 +18,12 @@ interface Settings {
   footer_legal_links: FooterLink[];
   analytics_id: string;
   logo_light_url: string; logo_dark_url: string; favicon_url: string;
+  google_books_logo_url: string;
+  apple_books_logo_url: string;
+  amazon_kindle_logo_url: string;
 }
 
-type Tab = "general" | "seo" | "social" | "header-footer" | "footer-links";
+type Tab = "general" | "seo" | "social" | "header-footer" | "footer-links" | "platforms";
 
 export default function WebsiteSettings() {
   const [tab, setTab] = useState<Tab>("general");
@@ -37,6 +40,9 @@ export default function WebsiteSettings() {
         ...data,
         footer_nav_links: data.footer_nav_links ?? [],
         footer_legal_links: data.footer_legal_links ?? [],
+        google_books_logo_url: data.google_books_logo_url ?? "",
+        apple_books_logo_url: data.apple_books_logo_url ?? "",
+        amazon_kindle_logo_url: data.amazon_kindle_logo_url ?? "",
       } as Settings);
     }
     setLoading(false);
@@ -56,11 +62,12 @@ export default function WebsiteSettings() {
   if (loading || !settings) return <Spinner />;
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
-    { key: "general",      label: "General",      icon: <Globe size={15} /> },
-    { key: "seo",          label: "SEO",           icon: <Search size={15} /> },
-    { key: "social",       label: "Social",        icon: <Share2 size={15} /> },
+    { key: "general",      label: "General",        icon: <Globe size={15} /> },
+    { key: "seo",          label: "SEO",             icon: <Search size={15} /> },
+    { key: "social",       label: "Social",          icon: <Share2 size={15} /> },
     { key: "header-footer", label: "Header & Footer", icon: <Layout size={15} /> },
-    { key: "footer-links", label: "Footer Links",  icon: <Layout size={15} /> },
+    { key: "footer-links", label: "Footer Links",    icon: <Layout size={15} /> },
+    { key: "platforms",    label: "Book Platforms",  icon: <BookOpen size={15} /> },
   ];
 
   return (
@@ -189,6 +196,46 @@ export default function WebsiteSettings() {
             </div>
           </div>
         )}
+
+        {tab === "platforms" && (
+          <div className="space-y-6">
+            <SectionTitle
+              icon={<BookOpen size={16} />}
+              title="Book Store Platforms"
+              desc="Upload logo images for each platform once. They appear automatically on every book page where the corresponding URL is set. Leave blank to use the built-in icon."
+            />
+            <PlatformLogoField
+              label="Google Books"
+              hint="Official Google Books logo URL"
+              logoUrl={settings.google_books_logo_url ?? ""}
+              onChange={(v) => setSettings({ ...settings, google_books_logo_url: v })}
+              fallbackColor="#4285F4"
+              fallbackText="G"
+            />
+            <PlatformLogoField
+              label="Apple Books"
+              hint="Official Apple Books logo URL"
+              logoUrl={settings.apple_books_logo_url ?? ""}
+              onChange={(v) => setSettings({ ...settings, apple_books_logo_url: v })}
+              fallbackColor="#000000"
+              fallbackText="A"
+            />
+            <PlatformLogoField
+              label="Amazon Kindle"
+              hint="Official Amazon Kindle logo URL"
+              logoUrl={settings.amazon_kindle_logo_url ?? ""}
+              onChange={(v) => setSettings({ ...settings, amazon_kindle_logo_url: v })}
+              fallbackColor="#FF9900"
+              fallbackText="K"
+            />
+            <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-4">
+              <p className="text-xs font-medium text-neutral-700 mb-1">How it works</p>
+              <p className="text-xs text-neutral-500 leading-relaxed">
+                Set logo image URLs here once. When editing a book, enter the purchase URL for each platform. The logo + URL will appear on the book detail page. If a book has no URL for a platform, that platform's logo is hidden.
+              </p>
+            </div>
+          </div>
+        )}
       </Card>
     </div>
   );
@@ -256,6 +303,48 @@ function SectionTitle({ icon, title, desc }: { icon: React.ReactNode; title: str
       <div>
         <h3 className="font-serif text-base font-bold text-neutral-900">{title}</h3>
         <p className="text-xs text-neutral-500">{desc}</p>
+      </div>
+    </div>
+  );
+}
+
+function PlatformLogoField({
+  label, hint, logoUrl, onChange, fallbackColor, fallbackText,
+}: {
+  label: string;
+  hint: string;
+  logoUrl: string;
+  onChange: (v: string) => void;
+  fallbackColor: string;
+  fallbackText: string;
+}) {
+  return (
+    <div className="flex items-start gap-4">
+      {/* Preview swatch */}
+      <div className="shrink-0 w-12 h-12 rounded-xl border border-neutral-200 overflow-hidden flex items-center justify-center bg-neutral-50">
+        {logoUrl ? (
+          <img src={logoUrl} alt={label} className="w-full h-full object-contain p-1" />
+        ) : (
+          <span
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold"
+            style={{ background: fallbackColor }}
+          >
+            {fallbackText}
+          </span>
+        )}
+      </div>
+      <div className="flex-1 space-y-1.5">
+        <label className="block text-xs font-medium text-neutral-600">{label} Logo URL</label>
+        <input
+          type="text"
+          value={logoUrl}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={`https://… (${hint})`}
+          className="w-full px-3.5 py-2.5 bg-white border border-neutral-200 rounded-lg text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-900 transition-colors"
+        />
+        <p className="text-[11px] text-neutral-400">
+          Paste a direct image URL. Leave blank to use the built-in {label} icon.
+        </p>
       </div>
     </div>
   );
