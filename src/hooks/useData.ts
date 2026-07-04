@@ -27,11 +27,15 @@ export interface Book {
   description: string;
   short_description: string;
   cover_image: string;
-  rating: number;
+  rating: number | null;
   isbn: string;
   year: number;
   pages: number;
   sort_order: number;
+  google_books_url: string;
+  apple_books_url: string;
+  amazon_kindle_url: string;
+  reviews_enabled: boolean;
 }
 
 export interface Review {

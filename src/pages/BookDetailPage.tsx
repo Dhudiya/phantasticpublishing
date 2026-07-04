@@ -1,8 +1,10 @@
 import { useParams, Link } from "react-router-dom";
-import { Star, ArrowLeft, BookOpen, ExternalLink } from "lucide-react";
+import { Star, ArrowLeft } from "lucide-react";
 import { useBookBySlug, useAuthors, useRelatedBooks } from "../hooks/useData";
 import Reveal from "../components/RevealSection";
 import SmartImage from "../components/SmartImage";
+import BookCover3D from "../components/BookCover3D";
+import PlatformBadges from "../components/PlatformLogos";
 import SEO from "../components/SEO";
 
 export default function BookDetailPage() {
@@ -31,6 +33,9 @@ export default function BookDetailPage() {
     </div>
   );
 
+  const hasRating = book.rating !== null && book.rating > 0;
+  const showReviews = book.reviews_enabled && reviews.length > 0;
+
   return (
     <div>
       <SEO title={book.title} description={book.short_description} image={book.cover_image} type="article" />
@@ -45,20 +50,12 @@ export default function BookDetailPage() {
           <div className="grid md:grid-cols-5 gap-6 sm:gap-8 md:gap-10 lg:gap-16">
             <Reveal className="md:col-span-2">
               <div className="mx-auto md:mx-0 max-w-[260px] sm:max-w-[300px] md:max-w-none">
-                <SmartImage
-                  src={book.cover_image}
-                  alt={book.title}
-                  className="aspect-[3/4] shadow-lg md:shadow-2xl rounded-lg md:rounded-none"
-                  imgClassName="w-full h-full object-cover"
+                <BookCover3D src={book.cover_image} alt={book.title} />
+                <PlatformBadges
+                  googleBooksUrl={book.google_books_url}
+                  appleBooksUrl={book.apple_books_url}
+                  amazonKindleUrl={book.amazon_kindle_url}
                 />
-                <div className="flex gap-3 mt-4 sm:mt-5 md:mt-6">
-                  <a href="#" className="flex-1 flex items-center justify-center gap-2 bg-black text-white py-3 text-sm font-medium hover:bg-neutral-800 transition-all duration-300 rounded-lg md:rounded-none active:scale-[0.98]">
-                    <BookOpen size={16} /><span className="hidden sm:inline">Google Books</span><span className="sm:hidden">Google</span>
-                  </a>
-                  <a href="#" className="flex-1 flex items-center justify-center gap-2 border border-neutral-300 py-3 text-sm font-medium hover:border-black transition-all duration-300 rounded-lg md:rounded-none active:scale-[0.98]">
-                    <ExternalLink size={16} /><span className="hidden sm:inline">Apple Books</span><span className="sm:hidden">Apple</span>
-                  </a>
-                </div>
               </div>
             </Reveal>
 
@@ -68,14 +65,18 @@ export default function BookDetailPage() {
                 <h1 className="font-serif text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-3 leading-tight">{book.title}</h1>
                 <Link to={`/authors/${author?.slug}`} className="text-base sm:text-lg text-neutral-600 hover:text-black transition-colors">{author?.name}</Link>
 
-                <div className="flex items-center gap-3 sm:gap-4 mt-4 sm:mt-5 md:mt-6 mb-6 sm:mb-7 md:mb-8">
-                  <div className="flex items-center gap-0.5 sm:gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} size={14} className={`sm:w-4 sm:h-4 ${i < Math.round(book.rating) ? "fill-black text-black" : "fill-neutral-200 text-neutral-200"}`} />
-                    ))}
+                {hasRating && (
+                  <div className="flex items-center gap-3 sm:gap-4 mt-4 sm:mt-5 md:mt-6 mb-6 sm:mb-7 md:mb-8">
+                    <div className="flex items-center gap-0.5 sm:gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} size={14} className={`sm:w-4 sm:h-4 ${i < Math.round(book.rating!) ? "fill-black text-black" : "fill-neutral-200 text-neutral-200"}`} />
+                      ))}
+                    </div>
+                    <span className="text-xs sm:text-sm text-neutral-500">{book.rating} / 5</span>
                   </div>
-                  <span className="text-xs sm:text-sm text-neutral-500">{book.rating} / 5</span>
-                </div>
+                )}
+
+                {!hasRating && <div className="mt-4 sm:mt-5 md:mt-6 mb-6 sm:mb-7 md:mb-8" />}
 
                 <p className="text-neutral-600 leading-relaxed text-sm sm:text-base md:text-base lg:text-lg mb-6 sm:mb-7 md:mb-8">{book.description}</p>
 
@@ -101,30 +102,32 @@ export default function BookDetailPage() {
         </div>
       </section>
 
-      {/* Reviews */}
-      <section className="py-12 sm:py-16 md:py-20 lg:py-24 bg-neutral-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
-          <Reveal><h2 className="font-serif text-2xl sm:text-2xl md:text-3xl font-bold mb-6 sm:mb-8 md:mb-10">Reviews</h2></Reveal>
-          <div className="grid md:grid-cols-2 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
-            {reviews.map((review, i) => (
-              <Reveal key={review.id} delay={i * 100}>
-                <div className="bg-white p-5 sm:p-6 md:p-8 rounded-lg md:rounded-none transition-all duration-300 hover:shadow-lg hover:shadow-neutral-200/50">
-                  <div className="flex items-center gap-0.5 sm:gap-1 mb-2 sm:mb-3">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} size={11} className={`sm:w-3 sm:h-3 ${i < review.rating ? "fill-black text-black" : "fill-neutral-200 text-neutral-200"}`} />
-                    ))}
+      {/* Reviews — only shown if enabled AND reviews exist */}
+      {showReviews && (
+        <section className="py-12 sm:py-16 md:py-20 lg:py-24 bg-neutral-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
+            <Reveal><h2 className="font-serif text-2xl sm:text-2xl md:text-3xl font-bold mb-6 sm:mb-8 md:mb-10">Reviews</h2></Reveal>
+            <div className="grid md:grid-cols-2 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
+              {reviews.map((review, i) => (
+                <Reveal key={review.id} delay={i * 100}>
+                  <div className="bg-white p-5 sm:p-6 md:p-8 rounded-lg md:rounded-none transition-all duration-300 hover:shadow-lg hover:shadow-neutral-200/50">
+                    <div className="flex items-center gap-0.5 sm:gap-1 mb-2 sm:mb-3">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} size={11} className={`sm:w-3 sm:h-3 ${i < review.rating ? "fill-black text-black" : "fill-neutral-200 text-neutral-200"}`} />
+                      ))}
+                    </div>
+                    <p className="text-neutral-600 leading-relaxed mb-3 sm:mb-4 md:mb-6 italic text-sm sm:text-base">&ldquo;{review.text}&rdquo;</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs sm:text-sm font-medium">{review.reviewer}</p>
+                      <p className="text-[10px] sm:text-xs text-neutral-400">{review.date}</p>
+                    </div>
                   </div>
-                  <p className="text-neutral-600 leading-relaxed mb-3 sm:mb-4 md:mb-6 italic text-sm sm:text-base">&ldquo;{review.text}&rdquo;</p>
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs sm:text-sm font-medium">{review.reviewer}</p>
-                    <p className="text-[10px] sm:text-xs text-neutral-400">{review.date}</p>
-                  </div>
-                </div>
-              </Reveal>
-            ))}
+                </Reveal>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Related Books */}
       {related.length > 0 && (
@@ -135,7 +138,7 @@ export default function BookDetailPage() {
               {related.map((b, i) => (
                 <Reveal key={b.id} delay={i * 80}>
                   <Link to={`/books/${b.slug}`} className="group">
-                    <SmartImage src={b.cover_image} alt={b.title} className="aspect-[3/4] mb-3 sm:mb-4 md:mb-5 bg-neutral-100 rounded-lg md:rounded-none" imgClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <SmartImage src={b.cover_image} alt={b.title} className="aspect-[3/4] mb-3 sm:mb-4 md:mb-5 bg-neutral-100 rounded-lg md:rounded-none" imgClassName="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" />
                     <h3 className="font-serif text-sm sm:text-base md:text-base font-bold mb-0.5 sm:mb-1 group-hover:text-neutral-600 transition-colors line-clamp-1">{b.title}</h3>
                     <p className="text-xs sm:text-sm text-neutral-500">{authors.find(a => a.id === b.author_id)?.name}</p>
                   </Link>

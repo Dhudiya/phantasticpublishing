@@ -5,7 +5,7 @@ import { slugify } from "../../lib/slugify";
 import {
   Card, PageHeader, Button, Input, Textarea, Select, Modal, EmptyState, Badge, Spinner,
 } from "../../admin/ui";
-import { Plus, Pencil, Trash2, BookOpen, Star, ChevronRight, ChevronDown } from "lucide-react";
+import { Plus, Pencil, Trash2, BookOpen, Star, ChevronRight, ChevronDown, MessageSquare } from "lucide-react";
 
 export default function BooksManagement() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -79,10 +79,19 @@ export default function BooksManagement() {
                     <p className="text-sm font-medium text-neutral-900 truncate">{book.title}</p>
                     <p className="text-xs text-neutral-500 truncate">{authorName(String(book.author_id))} · {book.genre}</p>
                   </div>
-                  <div className="flex items-center gap-1 text-xs text-neutral-400">
-                    <Star size={12} className="fill-black text-black" />
-                    {book.rating}
-                  </div>
+                  {book.rating !== null && book.rating > 0 ? (
+                    <div className="flex items-center gap-1 text-xs text-neutral-400">
+                      <Star size={12} className="fill-black text-black" />
+                      {book.rating}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-neutral-300">—</div>
+                  )}
+                  {book.reviews_enabled ? (
+                    <Badge color="green" title="Reviews enabled"><MessageSquare size={10} className="mr-0.5" />On</Badge>
+                  ) : (
+                    <Badge color="neutral" title="Reviews disabled"><MessageSquare size={10} className="mr-0.5" />Off</Badge>
+                  )}
                   <Badge color="neutral">{book.year}</Badge>
                   <div className="flex items-center gap-1">
                     <button onClick={() => setEditing(book)} className="p-2 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors">
@@ -129,22 +138,31 @@ function BookEditor({ book, authors, open, onClose, onSaved }: {
   useEffect(() => {
     setForm(book ?? {
       title: "", author_id: authors[0]?.id ? String(authors[0].id) : "", genre: "",
-      description: "", short_description: "", cover_image: "", rating: 0,
+      description: "", short_description: "", cover_image: "", rating: null,
       isbn: "", year: new Date().getFullYear(), pages: 0, sort_order: 0,
+      google_books_url: "", apple_books_url: "", amazon_kindle_url: "",
+      reviews_enabled: true,
     });
   }, [book, open, authors]);
 
   async function save() {
     setSaving(true);
+    const ratingVal = form.rating === null || form.rating === undefined || form.rating === 0
+      ? null
+      : Number(form.rating);
     const payload = {
       ...form,
       id: form.id ? Number(form.id) : undefined,
       author_id: Number(form.author_id),
-      rating: Number(form.rating),
+      rating: ratingVal,
       year: Number(form.year),
       pages: Number(form.pages),
       sort_order: Number(form.sort_order),
       slug: form.slug || slugify(form.title ?? ""),
+      google_books_url: form.google_books_url ?? "",
+      apple_books_url: form.apple_books_url ?? "",
+      amazon_kindle_url: form.amazon_kindle_url ?? "",
+      reviews_enabled: form.reviews_enabled ?? true,
     };
     if (book) {
       await supabase.from("books").update(payload).eq("id", book.id);
@@ -178,13 +196,43 @@ function BookEditor({ book, authors, open, onClose, onSaved }: {
         <Textarea label="Short description" value={form.short_description ?? ""} onChange={(v) => setForm({ ...form, short_description: v })} rows={2} />
         <Textarea label="Full description" value={form.description ?? ""} onChange={(v) => setForm({ ...form, description: v })} rows={4} />
         <div className="grid sm:grid-cols-3 gap-4">
-          <Input label="Rating (0-5)" type="number" value={String(form.rating ?? 0)} onChange={(v) => setForm({ ...form, rating: Number(v) })} />
+          <Input label="Rating (0-5, blank = none)" type="number" value={form.rating !== null && form.rating !== undefined ? String(form.rating) : ""} onChange={(v) => setForm({ ...form, rating: v === "" ? null : Number(v) })} placeholder="e.g. 4.5" />
           <Input label="Year" type="number" value={String(form.year ?? "")} onChange={(v) => setForm({ ...form, year: Number(v) })} />
           <Input label="Pages" type="number" value={String(form.pages ?? 0)} onChange={(v) => setForm({ ...form, pages: Number(v) })} />
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
           <Input label="ISBN" value={form.isbn ?? ""} onChange={(v) => setForm({ ...form, isbn: v })} />
           <Input label="Sort order" type="number" value={String(form.sort_order ?? 0)} onChange={(v) => setForm({ ...form, sort_order: Number(v) })} />
+        </div>
+
+        {/* Platform purchase links */}
+        <div className="border-t border-neutral-100 pt-4 space-y-3">
+          <div>
+            <p className="text-xs font-semibold text-neutral-700 uppercase tracking-wider">Purchase Links</p>
+            <p className="text-xs text-neutral-400 mt-0.5">Leave blank to hide a platform's logo from the book page.</p>
+          </div>
+          <Input label="Google Books URL" value={form.google_books_url ?? ""} onChange={(v) => setForm({ ...form, google_books_url: v })} placeholder="https://books.google.com/…" />
+          <Input label="Apple Books URL" value={form.apple_books_url ?? ""} onChange={(v) => setForm({ ...form, apple_books_url: v })} placeholder="https://books.apple.com/…" />
+          <Input label="Amazon Kindle URL" value={form.amazon_kindle_url ?? ""} onChange={(v) => setForm({ ...form, amazon_kindle_url: v })} placeholder="https://amazon.com/…" />
+        </div>
+
+        {/* Reviews toggle */}
+        <div className="border-t border-neutral-100 pt-4">
+          <label className="flex items-center justify-between cursor-pointer">
+            <div>
+              <p className="text-xs font-semibold text-neutral-700 uppercase tracking-wider">Enable Reviews</p>
+              <p className="text-xs text-neutral-400 mt-0.5">Show the Reviews section on this book's detail page.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, reviews_enabled: !(form.reviews_enabled ?? true) })}
+              className={`relative w-11 h-6 rounded-full transition-colors duration-300 ${(form.reviews_enabled ?? true) ? "bg-neutral-900" : "bg-neutral-300"}`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-300 ${(form.reviews_enabled ?? true) ? "translate-x-5" : "translate-x-0"}`}
+              />
+            </button>
+          </label>
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="secondary" onClick={onClose}>Cancel</Button>

@@ -111,7 +111,7 @@ export default function AuthorDetailPage() {
               {books.map((book, i) => (
                 <Reveal key={book.id} delay={i * 80}>
                   <Link to={`/books/${book.slug}`} className="group">
-                    <SmartImage src={book.cover_image} alt={book.title} className="aspect-[3/4] mb-3 sm:mb-4 md:mb-5 bg-neutral-100 rounded-lg md:rounded-none" imgClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <SmartImage src={book.cover_image} alt={book.title} className="aspect-[3/4] mb-3 sm:mb-4 md:mb-5 bg-neutral-100 rounded-lg md:rounded-none" imgClassName="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" />
                     <h3 className="font-serif text-sm sm:text-base md:text-base font-bold mb-0.5 sm:mb-1 group-hover:text-neutral-600 transition-colors line-clamp-1">{book.title}</h3>
                     <p className="text-[10px] sm:text-xs md:text-xs text-neutral-400 uppercase tracking-wider">{book.genre}</p>
                   </Link>

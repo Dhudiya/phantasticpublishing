@@ -27,6 +27,11 @@ export interface SiteSettings {
   seo_keywords: string;
 }
 
+interface SiteSettingsContextValue {
+  settings: SiteSettings;
+  loaded: boolean;
+}
+
 const defaults: SiteSettings = {
   site_name: "Phantastic Publishing",
   tagline: "Bringing Stories to Life",
@@ -61,19 +66,38 @@ const defaults: SiteSettings = {
   seo_keywords: "publishing, books, authors, literary, independent publisher",
 };
 
-const SiteSettingsContext = createContext<SiteSettings>(defaults);
+const SiteSettingsContext = createContext<SiteSettingsContextValue>({ settings: defaults, loaded: false });
+
+// Module-level cache: once settings are fetched, subsequent mounts reuse the
+// cached values so the logo renders instantly without a flash.
+let cachedSettings: SiteSettings | null = null;
+let cachedLoaded = false;
 
 export function SiteSettingsProvider({ children }: { children: React.ReactNode }) {
-  const [settings, setSettings] = useState<SiteSettings>(defaults);
+  const [settings, setSettings] = useState<SiteSettings>(cachedSettings ?? defaults);
+  const [loaded, setLoaded] = useState(cachedLoaded);
 
   useEffect(() => {
+    if (cachedLoaded) return; // already fetched in a prior mount
+
     supabase
       .from("site_settings")
       .select("*")
       .eq("id", 1)
       .maybeSingle()
       .then(({ data }) => {
-        if (data) setSettings({ ...defaults, ...(data as SiteSettings) });
+        const merged = data ? { ...defaults, ...(data as SiteSettings) } : defaults;
+        cachedSettings = merged;
+        cachedLoaded = true;
+        setSettings(merged);
+        setLoaded(true);
+
+        // Preload logo images so they render instantly when the Logo component mounts
+        const urls = [merged.logo_light_url, merged.logo_dark_url].filter(Boolean);
+        urls.forEach((url) => {
+          const img = new Image();
+          img.src = url;
+        });
       });
   }, []);
 
@@ -84,12 +108,16 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
   }, [settings.favicon_url]);
 
   return (
-    <SiteSettingsContext.Provider value={settings}>
+    <SiteSettingsContext.Provider value={{ settings, loaded }}>
       {children}
     </SiteSettingsContext.Provider>
   );
 }
 
 export function useSiteSettings() {
-  return useContext(SiteSettingsContext);
+  return useContext(SiteSettingsContext).settings;
+}
+
+export function useSiteSettingsLoaded() {
+  return useContext(SiteSettingsContext).loaded;
 }

@@ -1,5 +1,6 @@
+import { useState, useEffect } from "react";
 import { BookOpen } from "lucide-react";
-import { useSiteSettings } from "../contexts/SiteSettingsContext";
+import { useSiteSettings, useSiteSettingsLoaded } from "../contexts/SiteSettingsContext";
 
 type Variant = "light" | "dark" | "auto";
 
@@ -17,21 +18,49 @@ export default function Logo({
   className = "",
 }: LogoProps) {
   const settings = useSiteSettings();
+  const loaded = useSiteSettingsLoaded();
   const isDark = variant === "dark" || (variant === "auto" && onDark);
 
-  // Use custom logo images when provided
   const customUrl = isDark ? settings.logo_dark_url : settings.logo_light_url;
-  // Fall back to the other URL if only one is configured
   const fallbackUrl = isDark ? settings.logo_light_url : settings.logo_dark_url;
   const logoUrl = customUrl || fallbackUrl;
 
+  // Track image load state to avoid flash of unstyled image
+  const [imgLoaded, setImgLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!logoUrl) {
+      setImgLoaded(false);
+      return;
+    }
+    // If the image is already cached, it loads synchronously
+    const img = new Image();
+    img.onload = () => setImgLoaded(true);
+    img.src = logoUrl;
+    if (img.complete) setImgLoaded(true);
+  }, [logoUrl]);
+
+  // Reserve space to prevent layout shift — matches the h-9 (36px) logo height
+  const placeholder = (
+    <span
+      className={`inline-block h-9 ${showText ? "w-[140px]" : "w-9"} ${className}`}
+      aria-hidden
+    />
+  );
+
+  // While settings are loading, show placeholder to prevent text flash
+  if (!loaded) return placeholder;
+
   if (logoUrl) {
     return (
-      <img
-        src={logoUrl}
-        alt={settings.site_name || "Phantastic Publishing"}
-        className={`h-9 w-auto object-contain transition-opacity duration-300 ${className}`}
-      />
+      <span className={`inline-flex items-center h-9 ${className}`}>
+        {!imgLoaded && <span className="inline-block h-9 w-9" aria-hidden />}
+        <img
+          src={logoUrl}
+          alt={settings.site_name || "Phantastic Publishing"}
+          className={`h-9 w-auto object-contain transition-opacity duration-200 ${imgLoaded ? "opacity-100" : "opacity-0 absolute"}`}
+        />
+      </span>
     );
   }
 

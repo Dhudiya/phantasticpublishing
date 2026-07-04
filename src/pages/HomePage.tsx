@@ -108,7 +108,7 @@ export default function HomePage() {
                       src={book.cover_image}
                       alt={book.title}
                       className="aspect-[3/4] mb-3 sm:mb-4 md:mb-5 bg-neutral-100 rounded-lg sm:rounded-lg md:rounded-none"
-                      imgClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      imgClassName="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
                     />
                     <p className="text-[10px] sm:text-xs md:text-xs text-neutral-400 uppercase tracking-wider mb-0.5 sm:mb-1">
                       {book.genre}
