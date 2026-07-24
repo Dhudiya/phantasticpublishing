@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Twitter, Instagram, Facebook, Linkedin, Youtube } from "lucide-react";
 import Logo from "./Logo";
 import { useSiteSettings } from "../contexts/SiteSettingsContext";
+import { safeHref } from "../lib/security";
 
 const SOCIAL_ICONS: Record<string, React.ReactNode> = {
   twitter:   <Twitter size={20} />,
@@ -12,9 +13,11 @@ const SOCIAL_ICONS: Record<string, React.ReactNode> = {
 };
 
 function SocialIcon({ url, icon, label }: { url: string; icon: React.ReactNode; label: string }) {
+  const safeUrl = safeHref(url);
+  if (!safeUrl) return null;
   return (
     <a
-      href={url}
+      href={safeUrl}
       target="_blank"
       rel="noopener noreferrer"
       aria-label={label}
@@ -26,11 +29,13 @@ function SocialIcon({ url, icon, label }: { url: string; icon: React.ReactNode; 
 }
 
 function FooterNavLink({ label, url }: { label: string; url: string }) {
-  const isExternal = url.startsWith("http");
+  const safeUrl = safeHref(url);
+  if (!safeUrl) return null;
+  const isExternal = safeUrl.startsWith("http");
   if (isExternal) {
     return (
       <a
-        href={url}
+        href={safeUrl}
         target="_blank"
         rel="noopener noreferrer"
         className="text-sm font-medium text-neutral-300 hover:text-white transition-colors duration-200 whitespace-nowrap"
@@ -41,7 +46,7 @@ function FooterNavLink({ label, url }: { label: string; url: string }) {
   }
   return (
     <Link
-      to={url}
+      to={safeUrl}
       className="text-sm font-medium text-neutral-300 hover:text-white transition-colors duration-200 whitespace-nowrap"
     >
       {label}
@@ -50,16 +55,18 @@ function FooterNavLink({ label, url }: { label: string; url: string }) {
 }
 
 function FooterLegalLink({ label, url }: { label: string; url: string }) {
-  const isExternal = url.startsWith("http");
+  const safeUrl = safeHref(url);
+  if (!safeUrl) return null;
+  const isExternal = safeUrl.startsWith("http");
   const cls = "text-xs text-neutral-400 hover:text-white transition-colors duration-200 whitespace-nowrap";
   if (isExternal) {
     return (
-      <a href={url} target="_blank" rel="noopener noreferrer" className={cls}>
+      <a href={safeUrl} target="_blank" rel="noopener noreferrer" className={cls}>
         {label}
       </a>
     );
   }
-  return <Link to={url} className={cls}>{label}</Link>;
+  return <Link to={safeUrl} className={cls}>{label}</Link>;
 }
 
 export default function Footer() {

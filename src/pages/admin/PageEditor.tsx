@@ -1,17 +1,17 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../lib/supabase";
 import {
-  Card, PageHeader, Button, Input, Textarea, Select, Modal, EmptyState, Badge, Spinner,
+  Card, PageHeader, Button, Input, Textarea, Select, Modal, Badge, Spinner,
 } from "../../admin/ui";
 import {
   PAGE_SLUGS, PAGE_LABELS, PageSlug,
   pageContentDefaults, PageContentMap,
-  homeContentDefaults, HomeContent,
-  aboutContentDefaults, AboutContent,
-  booksContentDefaults, BooksContent,
-  authorsContentDefaults, AuthorsContent,
-  servicesContentDefaults, ServicesContent,
-  contactContentDefaults, ContactContent,
+  HomeContent,
+  AboutContent,
+  BooksContent,
+  AuthorsContent,
+  ServicesContent,
+  ContactContent,
 } from "../../lib/pageContentDefaults";
 import { Plus, Pencil, Trash2, FileText, ArrowLeft, Save } from "lucide-react";
 

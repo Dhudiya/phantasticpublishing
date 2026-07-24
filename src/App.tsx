@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
+import RequireRole from "./components/RequireRole";
 import HomePage from "./pages/HomePage";
 import AboutPage from "./pages/AboutPage";
 import BooksPage from "./pages/BooksPage";
@@ -41,25 +42,26 @@ export default function App() {
             <Route path="/authors/:slug" element={<AuthorDetailPage />} />
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="*" element={<HomePage />} />
           </Route>
 
           {/* Admin */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
-            <Route path="pages" element={<PageEditor />} />
-            <Route path="books" element={<BooksManagement />} />
-            <Route path="authors" element={<AuthorsManagement />} />
-            <Route path="services" element={<ServicesManagement />} />
-            <Route path="testimonials" element={<TestimonialsManagement />} />
-            <Route path="team" element={<TeamManagement />} />
-            <Route path="content" element={<ContentManagement />} />
-            <Route path="media" element={<MediaManager />} />
-            <Route path="inquiries" element={<InquiryManagement />} />
-            <Route path="analytics" element={<AnalyticsPage />} />
-            <Route path="users" element={<UserManagement />} />
-            <Route path="settings" element={<WebsiteSettings />} />
-            <Route path="theme" element={<ThemeSettings />} />
+            <Route path="pages" element={<RequireRole roles={["super_admin", "admin", "editor"]}><PageEditor /></RequireRole>} />
+            <Route path="books" element={<RequireRole roles={["super_admin", "admin", "editor"]}><BooksManagement /></RequireRole>} />
+            <Route path="authors" element={<RequireRole roles={["super_admin", "admin", "editor"]}><AuthorsManagement /></RequireRole>} />
+            <Route path="services" element={<RequireRole roles={["super_admin", "admin", "editor"]}><ServicesManagement /></RequireRole>} />
+            <Route path="testimonials" element={<RequireRole roles={["super_admin", "admin", "editor"]}><TestimonialsManagement /></RequireRole>} />
+            <Route path="team" element={<RequireRole roles={["super_admin", "admin", "editor"]}><TeamManagement /></RequireRole>} />
+            <Route path="content" element={<RequireRole roles={["super_admin", "admin", "editor"]}><ContentManagement /></RequireRole>} />
+            <Route path="media" element={<RequireRole roles={["super_admin", "admin", "editor"]}><MediaManager /></RequireRole>} />
+            <Route path="inquiries" element={<RequireRole roles={["super_admin", "admin", "editor"]}><InquiryManagement /></RequireRole>} />
+            <Route path="analytics" element={<RequireRole roles={["super_admin", "admin", "editor"]}><AnalyticsPage /></RequireRole>} />
+            <Route path="users" element={<RequireRole roles={["super_admin"]}><UserManagement /></RequireRole>} />
+            <Route path="settings" element={<RequireRole roles={["super_admin", "admin"]}><WebsiteSettings /></RequireRole>} />
+            <Route path="theme" element={<RequireRole roles={["super_admin", "admin"]}><ThemeSettings /></RequireRole>} />
           </Route>
         </Routes>
       </BrowserRouter>

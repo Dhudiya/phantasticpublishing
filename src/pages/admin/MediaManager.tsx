@@ -5,6 +5,7 @@ import {
   Card, PageHeader, Button, Input, Select, Modal, EmptyState, Badge, Spinner,
 } from "../../admin/ui";
 import { Upload, Trash2, Copy, Check, Image as ImageIcon, File, Film, Search } from "lucide-react";
+import { validateUploadFile, sanitizeFilename } from "../../lib/security";
 
 interface MediaRow {
   id: string; name: string; url: string; mime_type: string; size_bytes: number;
@@ -33,30 +34,45 @@ export default function MediaManager() {
 
   useEffect(() => { load(); }, [load]);
 
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
   async function handleUpload(files: FileList | null) {
     if (!files || files.length === 0) return;
     setUploading(true);
+    setUploadError(null);
     for (const file of Array.from(files)) {
-      const ext = file.name.split(".").pop();
+      const validationError = validateUploadFile(file);
+      if (validationError) {
+        setUploadError(`${file.name}: ${validationError}`);
+        continue;
+      }
+      const ext = sanitizeFilename(file.name).split(".").pop();
       const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, { upsert: false });
+      const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
+        upsert: false,
+        contentType: file.type,
+      });
       if (upErr) {
         // bucket may not exist; try to create it then retry
         if (upErr.message.includes("not found") || upErr.message.includes("Bucket")) {
           await supabase.storage.createBucket(BUCKET, { public: true });
-          await supabase.storage.from(BUCKET).upload(path, file, { upsert: false });
+          const { error: retryErr } = await supabase.storage.from(BUCKET).upload(path, file, {
+            upsert: false,
+            contentType: file.type,
+          });
+          if (retryErr) { setUploadError(`Upload failed: ${retryErr.message}`); continue; }
         } else {
+          setUploadError(`Upload failed: ${upErr.message}`);
           continue;
         }
       }
       const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
-      const category = file.type.startsWith("image/") ? "image" : file.type.startsWith("video/") ? "video" : "document";
       await supabase.from("media").insert({
-        name: file.name,
+        name: sanitizeFilename(file.name),
         url: pub.publicUrl,
         mime_type: file.type,
         size_bytes: file.size,
-        category,
+        category: "image",
         alt_text: "",
         uploaded_by: user?.id,
       });
@@ -114,9 +130,16 @@ export default function MediaManager() {
         ref={fileRef}
         type="file"
         multiple
+        accept="image/jpeg,image/png,image/gif,image/webp,image/avif,image/svg+xml"
         className="hidden"
         onChange={(e) => handleUpload(e.target.files)}
       />
+
+      {uploadError && (
+        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+          {uploadError}
+        </div>
+      )}
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">

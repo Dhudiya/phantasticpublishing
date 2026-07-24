@@ -43,13 +43,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(data as AdminProfile);
       return;
     }
-    // No profile row yet — auto-create one so the user isn't stranded.
-    // This handles users created via the Supabase dashboard or whose
-    // sign-up insert failed silently.
+    // No profile row yet — auto-create one as INACTIVE so access must be
+    // explicitly granted by a super_admin. This prevents any authenticated
+    // user from getting automatic admin access.
     const fullName = (email ?? "").split("@")[0] || "Admin";
     const { data: created } = await supabase
       .from("admin_profiles")
-      .insert({ id: uid, full_name: fullName, role: "editor", active: true })
+      .insert({ id: uid, full_name: fullName, role: "editor", active: false })
       .select("id, full_name, role, active, created_at")
       .maybeSingle();
     setProfile((created as AdminProfile | null) ?? null);

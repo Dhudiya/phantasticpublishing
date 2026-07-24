@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { safeSrc } from "../lib/security";
 
 export interface FooterLink {
   label: string;
@@ -109,8 +110,10 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     if (!settings.favicon_url) return;
+    const safeFavicon = safeSrc(settings.favicon_url);
+    if (!safeFavicon) return;
     const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-    if (link) link.href = settings.favicon_url;
+    if (link) link.href = safeFavicon;
   }, [settings.favicon_url]);
 
   return (

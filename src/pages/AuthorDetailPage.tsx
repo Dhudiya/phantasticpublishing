@@ -4,6 +4,7 @@ import { useAuthorBySlug } from "../hooks/useData";
 import Reveal from "../components/RevealSection";
 import SmartImage from "../components/SmartImage";
 import SEO from "../components/SEO";
+import { safeHref } from "../lib/security";
 
 export default function AuthorDetailPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -28,9 +29,9 @@ export default function AuthorDetailPage() {
   );
 
   const social = {
-    twitter: author.social_twitter,
-    instagram: author.social_instagram,
-    website: author.social_website,
+    twitter: safeHref(author.social_twitter),
+    instagram: safeHref(author.social_instagram),
+    website: safeHref(author.social_website),
   };
 
   return (

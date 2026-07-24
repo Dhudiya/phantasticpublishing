@@ -4,6 +4,7 @@ import {
   Card, PageHeader, Button, Spinner,
 } from "../../admin/ui";
 import { Save, Check, Palette, Sun, Moon, Monitor, Upload, Image as ImageIcon } from "lucide-react";
+import { validateUploadFile, sanitizeFilename } from "../../lib/security";
 
 interface ThemeSettings {
   theme_mode: string;
@@ -41,15 +42,27 @@ export default function ThemeSettings() {
     setTimeout(() => setSaved(false), 2000);
   }
 
+  const [logoError, setLogoError] = useState<string | null>(null);
+
   async function uploadLogo(variant: "logo_light_url" | "logo_dark_url" | "favicon_url", file: File) {
-    const ext = file.name.split(".").pop();
+    const validationError = validateUploadFile(file);
+    if (validationError) { setLogoError(validationError); return; }
+    setLogoError(null);
+    const ext = sanitizeFilename(file.name).split(".").pop();
     const path = `logos/${variant}-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("media").upload(path, file, { upsert: false });
+    const { error } = await supabase.storage.from("media").upload(path, file, {
+      upsert: false,
+      contentType: file.type,
+    });
     if (error) {
       if (error.message.includes("not found") || error.message.includes("Bucket")) {
         await supabase.storage.createBucket("media", { public: true });
-        await supabase.storage.from("media").upload(path, file, { upsert: false });
-      } else { return; }
+        const { error: retryErr } = await supabase.storage.from("media").upload(path, file, {
+          upsert: false,
+          contentType: file.type,
+        });
+        if (retryErr) { setLogoError(`Upload failed: ${retryErr.message}`); return; }
+      } else { setLogoError(`Upload failed: ${error.message}`); return; }
     }
     const { data: pub } = supabase.storage.from("media").getPublicUrl(path);
     setSettings({ ...settings!, [variant]: pub.publicUrl });
@@ -184,6 +197,11 @@ export default function ThemeSettings() {
           </p>
         </Card>
       </div>
+      {logoError && (
+        <div className="mt-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+          {logoError}
+        </div>
+      )}
     </div>
   );
 }
@@ -209,7 +227,7 @@ function LogoSlot({
           <span className="flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-neutral-200 rounded-lg text-xs font-medium text-neutral-700 hover:border-neutral-300 transition-colors">
             <Upload size={13} /> Upload
           </span>
-          <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && onUpload(e.target.files[0])} />
+          <input type="file" accept="image/jpeg,image/png,image/gif,image/webp,image/avif,image/svg+xml" className="hidden" onChange={(e) => e.target.files?.[0] && onUpload(e.target.files[0])} />
         </label>
         {url && (
           <button onClick={onClear} className="px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-50 rounded-lg transition-colors">

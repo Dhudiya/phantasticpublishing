@@ -1,4 +1,5 @@
 import { useSiteSettings } from "../contexts/SiteSettingsContext";
+import { safeHref, safeSrc } from "../lib/security";
 
 // ── Built-in fallback SVG logos ───────────────────────────────────────
 
@@ -78,10 +79,10 @@ export default function PlatformBadges({
   const platforms = [
     {
       label: "Google Books",
-      url: googleBooksUrl,
+      url: safeHref(googleBooksUrl),
       icon: (
         <PlatformIcon
-          customUrl={settings.google_books_logo_url}
+          customUrl={safeSrc(settings.google_books_logo_url) ?? ""}
           label="Google Books"
           fallback={<GoogleBooksSvg className="w-5 h-5" />}
         />
@@ -89,10 +90,10 @@ export default function PlatformBadges({
     },
     {
       label: "Apple Books",
-      url: appleBooksUrl,
+      url: safeHref(appleBooksUrl),
       icon: (
         <PlatformIcon
-          customUrl={settings.apple_books_logo_url}
+          customUrl={safeSrc(settings.apple_books_logo_url) ?? ""}
           label="Apple Books"
           fallback={<AppleBooksSvg className="w-5 h-5" />}
         />
@@ -100,10 +101,10 @@ export default function PlatformBadges({
     },
     {
       label: "Amazon Kindle",
-      url: amazonKindleUrl,
+      url: safeHref(amazonKindleUrl),
       icon: (
         <PlatformIcon
-          customUrl={settings.amazon_kindle_logo_url}
+          customUrl={safeSrc(settings.amazon_kindle_logo_url) ?? ""}
           label="Amazon Kindle"
           fallback={<AmazonKindleSvg className="w-5 h-5" />}
         />
