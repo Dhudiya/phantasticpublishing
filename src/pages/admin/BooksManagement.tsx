@@ -134,6 +134,7 @@ function BookEditor({ book, authors, open, onClose, onSaved }: {
 }) {
   const [form, setForm] = useState<Partial<Book>>({});
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setForm(book ?? {
@@ -143,16 +144,27 @@ function BookEditor({ book, authors, open, onClose, onSaved }: {
       google_books_url: "", apple_books_url: "", amazon_kindle_url: "",
       reviews_enabled: true,
     });
+    setError(null);
   }, [book, open, authors]);
 
   async function save() {
+    setError(null);
+    if (!form.title?.trim()) {
+      setError("Title is required.");
+      return;
+    }
+    if (!form.author_id) {
+      setError("Please select an author.");
+      return;
+    }
     setSaving(true);
     const ratingVal = form.rating === null || form.rating === undefined || form.rating === 0
       ? null
       : Number(form.rating);
+    const { id: _omit, ...rest } = form;
+    void _omit;
     const payload = {
-      ...form,
-      id: form.id ? Number(form.id) : undefined,
+      ...rest,
       author_id: Number(form.author_id),
       rating: ratingVal,
       year: Number(form.year),
@@ -165,10 +177,11 @@ function BookEditor({ book, authors, open, onClose, onSaved }: {
       reviews_enabled: form.reviews_enabled ?? true,
     };
     if (book) {
-      await supabase.from("books").update(payload).eq("id", book.id);
+      const { error: err } = await supabase.from("books").update(payload).eq("id", book.id);
+      if (err) { setError(err.message); setSaving(false); return; }
     } else {
-      const { data } = await supabase.from("books").insert(payload).select();
-      void data;
+      const { error: err } = await supabase.from("books").insert(payload);
+      if (err) { setError(err.message); setSaving(false); return; }
     }
     setSaving(false);
     onSaved();
@@ -234,6 +247,11 @@ function BookEditor({ book, authors, open, onClose, onSaved }: {
             </button>
           </label>
         </div>
+        {error && (
+          <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            {error}
+          </div>
+        )}
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
           <Button onClick={save} disabled={saving}>{saving ? "Saving…" : "Save book"}</Button>
@@ -323,20 +341,31 @@ function ReviewEditor({ review, bookId, open, onClose, onSaved }: {
 }) {
   const [form, setForm] = useState<Partial<Review>>({});
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setForm(review ?? {
-      id: crypto.randomUUID(), book_id: bookId, reviewer: "", rating: 5,
+      book_id: bookId, reviewer: "", rating: 5,
       text: "", date: new Date().toISOString().slice(0, 10), sort_order: 0,
     });
+    setError(null);
   }, [review, open, bookId]);
 
   async function save() {
+    setError(null);
+    if (!form.reviewer?.trim()) {
+      setError("Reviewer name is required.");
+      return;
+    }
     setSaving(true);
     if (review) {
-      await supabase.from("reviews").update(form).eq("id", review.id);
+      const { error: err } = await supabase.from("reviews").update(form).eq("id", review.id);
+      if (err) { setError(err.message); setSaving(false); return; }
     } else {
-      await supabase.from("reviews").insert(form);
+      const { id: _omit, ...rest } = form;
+      void _omit;
+      const { error: err } = await supabase.from("reviews").insert(rest);
+      if (err) { setError(err.message); setSaving(false); return; }
     }
     setSaving(false);
     onSaved();
@@ -357,6 +386,11 @@ function ReviewEditor({ review, bookId, open, onClose, onSaved }: {
           <Input label="Date" value={form.date ?? ""} onChange={(v) => setForm({ ...form, date: v })} placeholder="2025-01-15" />
           <Input label="Sort order" type="number" value={String(form.sort_order ?? 0)} onChange={(v) => setForm({ ...form, sort_order: Number(v) })} />
         </div>
+        {error && (
+          <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            {error}
+          </div>
+        )}
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
           <Button onClick={save} disabled={saving}>{saving ? "Saving…" : "Save review"}</Button>

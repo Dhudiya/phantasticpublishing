@@ -102,28 +102,38 @@ function AuthorEditor({ author, open, onClose, onSaved }: {
   const [form, setForm] = useState<Partial<Author>>({});
   const [awards, setAwards] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setForm(author ?? {
-      id: 0, name: "", photo: "", genre: "", biography: "", short_bio: "",
+      name: "", photo: "", genre: "", biography: "", short_bio: "",
       awards: [], social_twitter: "", social_instagram: "", social_website: "", sort_order: 0,
     });
     setAwards(author?.awards ?? []);
+    setError(null);
   }, [author, open]);
 
   async function save() {
+    setError(null);
+    if (!form.name?.trim()) {
+      setError("Name is required.");
+      return;
+    }
     setSaving(true);
+    const { id: _omit, ...rest } = form;
+    void _omit;
     const payload = {
-      ...form,
-      id: form.id ? Number(form.id) : undefined,
+      ...rest,
       awards,
       sort_order: Number(form.sort_order),
       slug: form.slug || slugify(form.name ?? ""),
     };
     if (author) {
-      await supabase.from("authors").update(payload).eq("id", author.id);
+      const { error: err } = await supabase.from("authors").update(payload).eq("id", author.id);
+      if (err) { setError(err.message); setSaving(false); return; }
     } else {
-      await supabase.from("authors").insert(payload);
+      const { error: err } = await supabase.from("authors").insert(payload);
+      if (err) { setError(err.message); setSaving(false); return; }
     }
     setSaving(false);
     onSaved();
@@ -176,6 +186,11 @@ function AuthorEditor({ author, open, onClose, onSaved }: {
         </div>
         <Input label="Sort order" type="number" value={String(form.sort_order ?? 0)} onChange={(v) => setForm({ ...form, sort_order: Number(v) })} />
 
+        {error && (
+          <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            {error}
+          </div>
+        )}
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
           <Button onClick={save} disabled={saving}>{saving ? "Saving…" : "Save author"}</Button>
