@@ -1,7 +1,7 @@
 import { BookOpen } from "lucide-react";
 import { useSiteSettings } from "../contexts/SiteSettingsContext";
-import logoLight from "../assets/logo-light.svg";
-import logoDark from "../assets/logo-dark.svg";
+import logoLight from "../assets/logo-dark.svg";
+import logoDark from "../assets/logo-light.svg";
 
 type Variant = "light" | "dark" | "auto";
 
