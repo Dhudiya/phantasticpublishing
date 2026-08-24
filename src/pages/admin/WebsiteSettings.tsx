@@ -9,7 +9,7 @@ interface FooterLink { label: string; url: string; }
 
 interface Settings {
   site_name: string; tagline: string; description: string;
-  seo_title: string; seo_description: string; seo_keywords: string;
+  seo_title: string; seo_description: string; seo_keywords: string; seo_og_image: string;
   social_twitter: string; social_instagram: string; social_facebook: string;
   social_linkedin: string; social_youtube: string;
   header_cta_text: string; header_cta_link: string;
@@ -136,6 +136,8 @@ export default function WebsiteSettings() {
             <Input label="SEO title" value={settings.seo_title} onChange={(v) => setSettings({ ...settings, seo_title: v })} />
             <Textarea label="SEO description" value={settings.seo_description} onChange={(v) => setSettings({ ...settings, seo_description: v })} rows={3} />
             <Input label="SEO keywords" value={settings.seo_keywords} onChange={(v) => setSettings({ ...settings, seo_keywords: v })} placeholder="comma, separated, keywords" />
+            <Input label="Default social preview image URL" value={settings.seo_og_image ?? ""} onChange={(v) => setSettings({ ...settings, seo_og_image: v })} placeholder="https://…" />
+            <p className="text-xs text-neutral-500 -mt-2">Used as the link preview image on pages that don't have their own image (book covers, author photos). A local fallback is used if this is blank.</p>
             <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-4">
               <p className="text-xs font-medium text-neutral-500 mb-2">Search preview</p>
               <p className="text-blue-700 text-sm truncate">{settings.seo_title || settings.site_name}</p>

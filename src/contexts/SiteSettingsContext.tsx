@@ -25,6 +25,7 @@ export interface SiteSettings {
   seo_title: string;
   seo_description: string;
   seo_keywords: string;
+  seo_og_image: string;
   google_books_logo_url: string;
   apple_books_logo_url: string;
   amazon_kindle_logo_url: string;
@@ -67,6 +68,7 @@ const defaults: SiteSettings = {
   seo_description:
     "An independent publishing house dedicated to discovering and nurturing bold literary voices across every genre.",
   seo_keywords: "publishing, books, authors, literary, independent publisher",
+  seo_og_image: "",
   google_books_logo_url: "",
   apple_books_logo_url: "",
   amazon_kindle_logo_url: "",

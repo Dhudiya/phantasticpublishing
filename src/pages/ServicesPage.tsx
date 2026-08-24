@@ -21,7 +21,7 @@ export default function ServicesPage() {
 
   return (
     <div>
-      <SEO title="Services" description="Explore our publishing services — editing, proofreading, cover design, printing, distribution, and marketing." />
+      <SEO title="Services" description="Explore our publishing services — editing, proofreading, cover design, printing, distribution, and marketing." image={content.hero.background_image} />
       {/* Hero */}
       <section className="relative pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-12 sm:pb-16 md:pb-20 lg:pb-20 bg-neutral-950 text-white">
         <div className="absolute inset-0">

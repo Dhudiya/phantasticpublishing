@@ -18,7 +18,7 @@ export default function ContactPage() {
 
   return (
     <div>
-      <SEO title="Contact" description="Get in touch with Phantastic Publishing for general enquiries, careers, submissions, and business partnerships." />
+      <SEO title="Contact" description="Get in touch with Phantastic Publishing for general enquiries, careers, submissions, and business partnerships." image={content.hero.background_image} />
       {/* Hero */}
       <section className="relative pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-12 sm:pb-16 md:pb-20 lg:pb-20 bg-neutral-950 text-white">
         <div className="absolute inset-0">
