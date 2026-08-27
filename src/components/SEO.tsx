@@ -7,11 +7,22 @@ interface SEOProps {
   description?: string;
   image?: string;
   type?: "website" | "article";
+  canonicalPath?: string;
+  noindex?: boolean;
+  nofollow?: boolean;
 }
 
 const SITE_NAME = "Phantastic Publishing";
 
-export default function SEO({ title, description, image, type = "website" }: SEOProps) {
+export default function SEO({
+  title,
+  description,
+  image,
+  type = "website",
+  canonicalPath,
+  noindex = false,
+  nofollow = false,
+}: SEOProps) {
   const settings = useSiteSettings();
   const fullTitle = title
     ? `${title} — ${SITE_NAME}`
@@ -21,10 +32,12 @@ export default function SEO({ title, description, image, type = "website" }: SEO
     settings.seo_description ||
     "An independent publishing house dedicated to discovering and nurturing bold literary voices across every genre.";
 
-  // Page-specific image takes priority, then the site-wide default, then the
-  // bundled local fallback. The local fallback guarantees a valid OG image even
-  // before site settings load.
   const ogImage = image || settings.seo_og_image || ogDefault;
+  const canonicalUrl = canonicalPath
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}${canonicalPath}`
+    : typeof window !== "undefined"
+      ? window.location.href
+      : "";
 
   useEffect(() => {
     document.title = fullTitle;
@@ -45,14 +58,33 @@ export default function SEO({ title, description, image, type = "website" }: SEO
     setMeta("property", "og:type", type);
     setMeta("property", "og:site_name", SITE_NAME);
     setMeta("property", "og:image", ogImage);
+    setMeta("property", "og:url", canonicalUrl);
     setMeta("name", "twitter:card", "summary_large_image");
     setMeta("name", "twitter:title", fullTitle);
     setMeta("name", "twitter:description", desc);
     setMeta("name", "twitter:image", ogImage);
+
+    // Robots meta
+    const robotsDirectives: string[] = [];
+    if (noindex) robotsDirectives.push("noindex");
+    else robotsDirectives.push("index");
+    if (nofollow) robotsDirectives.push("nofollow");
+    else robotsDirectives.push("follow");
+    setMeta("name", "robots", robotsDirectives.join(", "));
+
+    // Canonical URL
+    let canonicalEl = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonicalEl) {
+      canonicalEl = document.createElement("link");
+      canonicalEl.rel = "canonical";
+      document.head.appendChild(canonicalEl);
+    }
+    canonicalEl.href = canonicalUrl;
+
     if (settings.seo_keywords) {
       setMeta("name", "keywords", settings.seo_keywords);
     }
-  }, [fullTitle, desc, ogImage, type, settings.seo_keywords]);
+  }, [fullTitle, desc, ogImage, type, canonicalUrl, noindex, nofollow, settings.seo_keywords]);
 
   return null;
 }
