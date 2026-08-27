@@ -6,6 +6,7 @@ import { usePageContent } from "../hooks/usePageContent";
 import Reveal from "../components/RevealSection";
 import SmartImage from "../components/SmartImage";
 import SEO from "../components/SEO";
+import SchemaInjector, { buildBreadcrumbSchema } from "../components/SchemaInjector";
 
 export default function BooksPage() {
   const { data: books, loading } = useBooks();
@@ -33,7 +34,8 @@ export default function BooksPage() {
 
   return (
     <div>
-      <SEO title="Books" description="Browse our full catalog of published books across every genre — fiction, non-fiction, poetry, and more." image={content.hero.background_image} />
+      <SEO title="Books" description="Browse our full catalog of published books across every genre — fiction, non-fiction, poetry, and more." image={content.hero.background_image} canonicalPath="/books" />
+      <SchemaInjector schemas={[buildBreadcrumbSchema([{ name: "Home", url: "/" }, { name: "Books", url: "/books" }])]} />
       {/* Hero */}
       <section className="relative pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-12 sm:pb-16 md:pb-20 lg:pb-20 bg-neutral-950 text-white">
         <div className="absolute inset-0">

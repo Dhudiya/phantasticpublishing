@@ -5,6 +5,7 @@ import { usePageContent } from "../hooks/usePageContent";
 import Reveal from "../components/RevealSection";
 import SmartImage from "../components/SmartImage";
 import SEO from "../components/SEO";
+import SchemaInjector from "../components/SchemaInjector";
 
 export default function HomePage() {
   const { data: books, loading: booksLoading } = useBooks();
@@ -18,7 +19,8 @@ export default function HomePage() {
 
   return (
     <div>
-      <SEO />
+      <SEO canonicalPath="/" />
+      <SchemaInjector schemas={[]} />
       {/* Hero */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-neutral-950">
         <div className="absolute inset-0">

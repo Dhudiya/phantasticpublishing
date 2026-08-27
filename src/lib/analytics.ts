@@ -113,7 +113,7 @@ function track(opts: TrackOptions): void {
   const sessionId = getSessionId();
   const ua = navigator.userAgent || "";
   const { device_type, browser, os } = parseUserAgent(ua);
-  const referrer = opts.referrer ?? document.referrer || null;
+  const referrer = opts.referrer ?? (document.referrer || null);
   const pageTitle = document.title || "";
 
   const payload = {

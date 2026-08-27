@@ -4,6 +4,7 @@ import { usePageContent } from "../hooks/usePageContent";
 import Reveal from "../components/RevealSection";
 import SmartImage from "../components/SmartImage";
 import SEO from "../components/SEO";
+import SchemaInjector, { buildBreadcrumbSchema } from "../components/SchemaInjector";
 
 export default function AuthorsPage() {
   const { data: authors, loading } = useAuthors();
@@ -11,7 +12,8 @@ export default function AuthorsPage() {
 
   return (
     <div>
-      <SEO title="Authors" description="Discover the talented authors behind our published books — their stories, awards, and published works." image={content.hero.background_image} />
+      <SEO title="Authors" description="Discover the talented authors behind our published books — their stories, awards, and published works." image={content.hero.background_image} canonicalPath="/authors" />
+      <SchemaInjector schemas={[buildBreadcrumbSchema([{ name: "Home", url: "/" }, { name: "Authors", url: "/authors" }])]} />
       {/* Hero */}
       <section className="relative pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-12 sm:pb-16 md:pb-20 lg:pb-20 bg-neutral-950 text-white">
         <div className="absolute inset-0">

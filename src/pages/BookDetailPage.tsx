@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Star, ArrowLeft } from "lucide-react";
 import { useBookBySlug, useAuthors, useRelatedBooks } from "../hooks/useData";
@@ -6,6 +7,8 @@ import SmartImage from "../components/SmartImage";
 import BookCover3D from "../components/BookCover3D";
 import PlatformBadges from "../components/PlatformLogos";
 import SEO from "../components/SEO";
+import SchemaInjector, { buildBookSchema, buildBreadcrumbSchema } from "../components/SchemaInjector";
+import { trackEvent } from "../lib/analytics";
 
 export default function BookDetailPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -14,6 +17,12 @@ export default function BookDetailPage() {
   const { data: related } = useRelatedBooks(book?.id, book?.genre, 4);
 
   const author = book ? authors.find(a => a.id === book.author_id) : undefined;
+
+  useEffect(() => {
+    if (book && author) {
+      trackEvent("book_view", { book_id: book.id, title: book.title });
+    }
+  }, [book?.id]);
 
   if (loading) return (
     <div className="pt-32 pb-20">
@@ -47,7 +56,11 @@ export default function BookDetailPage() {
 
   return (
     <div>
-      <SEO title={book.title} description={book.short_description} image={book.cover_image} type="article" />
+      <SEO title={book.title} description={book.short_description} image={book.cover_image} type="article" canonicalPath={`/books/${book.slug}`} />
+      <SchemaInjector schemas={[
+        buildBookSchema({ title: book.title, description: book.description, cover_image: book.cover_image, isbn: book.isbn, year: book.year, author_name: author?.name ?? "" }),
+        buildBreadcrumbSchema([{ name: "Home", url: "/" }, { name: "Books", url: "/books" }, { name: book.title, url: `/books/${book.slug}` }]),
+      ]} />
 
       {/* ── Hero: Cover + Info ──────────────────────────────────── */}
       <section className="pt-24 sm:pt-28 md:pt-32 lg:pt-36 pb-12 sm:pb-16 md:pb-20 lg:pb-24">

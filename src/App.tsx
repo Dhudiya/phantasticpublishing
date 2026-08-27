@@ -9,6 +9,7 @@ import AuthorsPage from "./pages/AuthorsPage";
 import AuthorDetailPage from "./pages/AuthorDetailPage";
 import ServicesPage from "./pages/ServicesPage";
 import ContactPage from "./pages/ContactPage";
+import NotFoundPage from "./pages/NotFoundPage";
 import { AuthProvider } from "./admin/AuthContext";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -26,6 +27,7 @@ import WebsiteSettings from "./pages/admin/WebsiteSettings";
 import ThemeSettings from "./pages/admin/ThemeSettings";
 import InquiryManagement from "./pages/admin/InquiryManagement";
 import AnalyticsPage from "./pages/admin/AnalyticsPage";
+import SeoBotPage from "./pages/admin/SeoBotPage";
 
 export default function App() {
   return (
@@ -42,7 +44,7 @@ export default function App() {
             <Route path="/authors/:slug" element={<AuthorDetailPage />} />
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/contact" element={<ContactPage />} />
-            <Route path="*" element={<HomePage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
 
           {/* Admin */}
@@ -59,6 +61,7 @@ export default function App() {
             <Route path="media" element={<RequireRole roles={["super_admin", "admin", "editor"]}><MediaManager /></RequireRole>} />
             <Route path="inquiries" element={<RequireRole roles={["super_admin", "admin", "editor"]}><InquiryManagement /></RequireRole>} />
             <Route path="analytics" element={<RequireRole roles={["super_admin", "admin", "editor"]}><AnalyticsPage /></RequireRole>} />
+            <Route path="seo" element={<RequireRole roles={["super_admin", "admin", "editor"]}><SeoBotPage /></RequireRole>} />
             <Route path="users" element={<RequireRole roles={["super_admin"]}><UserManagement /></RequireRole>} />
             <Route path="settings" element={<RequireRole roles={["super_admin", "admin"]}><WebsiteSettings /></RequireRole>} />
             <Route path="theme" element={<RequireRole roles={["super_admin", "admin"]}><ThemeSettings /></RequireRole>} />

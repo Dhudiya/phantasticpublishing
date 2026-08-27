@@ -5,7 +5,7 @@ import Logo from "../../components/Logo";
 import {
   LayoutDashboard, FileText, Image, Users, Settings, Palette,
   Inbox, BarChart3, LogOut, Menu, X, ExternalLink, ChevronDown,
-  BookOpen, PenTool, Quote, UserCircle, LayoutTemplate,
+  BookOpen, PenTool, Quote, UserCircle, LayoutTemplate, Search,
 } from "lucide-react";
 
 interface NavItem {
@@ -27,6 +27,7 @@ const navItems: NavItem[] = [
   { to: "/admin/media",       label: "Media",         icon: <Image size={17} />,           roles: ["super_admin", "admin", "editor"] },
   { to: "/admin/inquiries",   label: "Inquiries",     icon: <Inbox size={17} />,           roles: ["super_admin", "admin", "editor"] },
   { to: "/admin/analytics",   label: "Analytics",     icon: <BarChart3 size={17} />,       roles: ["super_admin", "admin", "editor"] },
+  { to: "/admin/seo",         label: "SEO Bot",        icon: <Search size={17} />,          roles: ["super_admin", "admin", "editor"] },
   { to: "/admin/users",       label: "Users",         icon: <Users size={17} />,           roles: ["super_admin"] },
   { to: "/admin/settings",    label: "Settings",      icon: <Settings size={17} />,        roles: ["super_admin", "admin"] },
   { to: "/admin/theme",       label: "Theme",         icon: <Palette size={17} />,         roles: ["super_admin", "admin"] },
@@ -93,6 +94,7 @@ export default function AdminLayout() {
      location.pathname.startsWith("/admin/media")        ? "Media" :
      location.pathname.startsWith("/admin/inquiries")    ? "Inquiries" :
      location.pathname.startsWith("/admin/analytics")    ? "Analytics" :
+     location.pathname.startsWith("/admin/seo")          ? "SEO Bot" :
      location.pathname.startsWith("/admin/users")        ? "Users" :
      location.pathname.startsWith("/admin/settings")     ? "Settings" :
      location.pathname.startsWith("/admin/theme")        ? "Theme" : "Dashboard");

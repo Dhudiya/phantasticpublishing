@@ -5,6 +5,7 @@ import { usePageContent } from "../hooks/usePageContent";
 import Reveal from "../components/RevealSection";
 import SmartImage from "../components/SmartImage";
 import SEO from "../components/SEO";
+import SchemaInjector, { buildBreadcrumbSchema } from "../components/SchemaInjector";
 
 const iconMap: Record<string, React.ReactNode> = {
   PenTool: <PenTool size={22} className="sm:w-6 sm:h-6 md:w-7 md:h-7" />,
@@ -21,7 +22,8 @@ export default function ServicesPage() {
 
   return (
     <div>
-      <SEO title="Services" description="Explore our publishing services — editing, proofreading, cover design, printing, distribution, and marketing." image={content.hero.background_image} />
+      <SEO title="Services" description="Explore our publishing services — editing, proofreading, cover design, printing, distribution, and marketing." image={content.hero.background_image} canonicalPath="/services" />
+      <SchemaInjector schemas={[buildBreadcrumbSchema([{ name: "Home", url: "/" }, { name: "Services", url: "/services" }])]} />
       {/* Hero */}
       <section className="relative pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-12 sm:pb-16 md:pb-20 lg:pb-20 bg-neutral-950 text-white">
         <div className="absolute inset-0">

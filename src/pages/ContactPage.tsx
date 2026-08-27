@@ -3,6 +3,7 @@ import { usePageContent } from "../hooks/usePageContent";
 import Reveal from "../components/RevealSection";
 import SmartImage from "../components/SmartImage";
 import SEO from "../components/SEO";
+import SchemaInjector, { buildBreadcrumbSchema } from "../components/SchemaInjector";
 
 const iconMap: Record<string, React.ReactNode> = {
   Mail: <Mail size={18} className="sm:w-5 sm:h-5" />,
@@ -18,7 +19,8 @@ export default function ContactPage() {
 
   return (
     <div>
-      <SEO title="Contact" description="Get in touch with Phantastic Publishing for general enquiries, careers, submissions, and business partnerships." image={content.hero.background_image} />
+      <SEO title="Contact" description="Get in touch with Phantastic Publishing for general enquiries, careers, submissions, and business partnerships." image={content.hero.background_image} canonicalPath="/contact" />
+      <SchemaInjector schemas={[buildBreadcrumbSchema([{ name: "Home", url: "/" }, { name: "Contact", url: "/contact" }])]} />
       {/* Hero */}
       <section className="relative pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-12 sm:pb-16 md:pb-20 lg:pb-20 bg-neutral-950 text-white">
         <div className="absolute inset-0">

@@ -1,14 +1,23 @@
+import { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, ExternalLink, Award, BookOpen } from "lucide-react";
 import { useAuthorBySlug } from "../hooks/useData";
 import Reveal from "../components/RevealSection";
 import SmartImage from "../components/SmartImage";
 import SEO from "../components/SEO";
+import SchemaInjector, { buildPersonSchema, buildBreadcrumbSchema } from "../components/SchemaInjector";
+import { trackEvent } from "../lib/analytics";
 import { safeHref } from "../lib/security";
 
 export default function AuthorDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: author, books, loading, error } = useAuthorBySlug(slug);
+
+  useEffect(() => {
+    if (author) {
+      trackEvent("author_view", { author_id: author.id, name: author.name });
+    }
+  }, [author?.id]);
 
   if (loading) return (
     <div className="pt-32 pb-20">
@@ -36,7 +45,11 @@ export default function AuthorDetailPage() {
 
   return (
     <div>
-      <SEO title={author.name} description={author.short_bio} image={author.photo} type="article" />
+      <SEO title={author.name} description={author.short_bio} image={author.photo} type="article" canonicalPath={`/authors/${author.slug}`} />
+      <SchemaInjector schemas={[
+        buildPersonSchema({ name: author.name, bio: author.biography, photo: author.photo, genre: author.genre, website: author.social_website, twitter: author.social_twitter, instagram: author.social_instagram }),
+        buildBreadcrumbSchema([{ name: "Home", url: "/" }, { name: "Authors", url: "/authors" }, { name: author.name, url: `/authors/${author.slug}` }]),
+      ]} />
       <section className="pt-24 sm:pt-28 md:pt-32 lg:pt-36 pb-12 sm:pb-16 md:pb-20 lg:pb-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-8">
           <Link to="/authors" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-black transition-colors mb-6 sm:mb-8">
