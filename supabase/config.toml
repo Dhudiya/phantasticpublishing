@@ -3,3 +3,9 @@ verify_jwt = false
 
 [functions.robots]
 verify_jwt = false
+
+[functions.analytics-track]
+verify_jwt = false
+
+[functions.seo-autofix]
+verify_jwt = false

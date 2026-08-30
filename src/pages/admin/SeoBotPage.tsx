@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../lib/supabase";
 import { Card, PageHeader, Spinner, Button, Badge } from "../../admin/ui";
-import { runFullAudit, type AuditResult, type SeoIssue } from "../../lib/seoAnalyzer";
+import { runFullAudit, type AuditResult } from "../../lib/seoAnalyzer";
 import {
   Search, AlertCircle, AlertTriangle, Info, CheckCircle,
   RefreshCw, Bug, FileText, TrendingUp, Clock, Activity,
+  Wand2, Loader2, XCircle,
 } from "lucide-react";
 
 interface AuditRow {
@@ -32,7 +33,29 @@ interface IssueRow {
   fix_notes: string | null;
 }
 
+interface AutoFixResult {
+  ok: boolean;
+  fixes: {
+    page_url: string;
+    page_key: string;
+    issue_types: string[];
+    actions: string[];
+  }[];
+  pages_fixed: number;
+  issues_auto_fixed: number;
+  manual_review_needed: number;
+}
+
 type Tab = "overview" | "issues" | "pages" | "sitemap" | "crawl" | "history";
+
+const AUTOFIXABLE_TYPES = [
+  "missing_title", "title_too_short", "title_too_long",
+  "missing_meta_description", "meta_description_too_long",
+  "missing_canonical", "missing_og_title", "missing_og_image",
+  "missing_twitter_card", "missing_structured_data",
+  "noindex_directive", "nofollow_directive",
+  "duplicate_title", "duplicate_meta_description",
+];
 
 export default function SeoBotPage() {
   const [tab, setTab] = useState<Tab>("overview");
@@ -40,7 +63,9 @@ export default function SeoBotPage() {
   const [issues, setIssues] = useState<IssueRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [crawling, setCrawling] = useState(false);
+  const [autoFixing, setAutoFixing] = useState(false);
   const [lastResult, setLastResult] = useState<AuditResult | null>(null);
+  const [autoFixResult, setAutoFixResult] = useState<AutoFixResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [filterSeverity, setFilterSeverity] = useState<string>("all");
 
@@ -62,6 +87,7 @@ export default function SeoBotPage() {
   const handleCrawl = async () => {
     setCrawling(true);
     setError(null);
+    setAutoFixResult(null);
     try {
       const result = await runFullAudit();
       setLastResult(result);
@@ -70,6 +96,84 @@ export default function SeoBotPage() {
       setError(`Crawl failed: ${(e as Error).message}`);
     }
     setCrawling(false);
+  };
+
+  const handleAutoFix = async () => {
+    setAutoFixing(true);
+    setError(null);
+    try {
+      // Gather all open issues that are auto-fixable
+      const openAutoFixable = openIssues.filter((i) => AUTOFIXABLE_TYPES.includes(i.issue_type));
+
+      if (openAutoFixable.length === 0) {
+        setError("No auto-fixable issues found. Run a crawl first, or the remaining issues require manual review.");
+        setAutoFixing(false);
+        return;
+      }
+
+      // Gather page analyses from the last crawl (or re-crawl if needed)
+      let pageAnalyses = lastResult?.pageAnalyses ?? [];
+
+      // If we don't have page analyses, we need to crawl first
+      if (pageAnalyses.length === 0) {
+        const result = await runFullAudit();
+        setLastResult(result);
+        pageAnalyses = result.pageAnalyses;
+      }
+
+      // Group issues by page and match with analyses
+      const issuesWithPage = openAutoFixable.map((issue) => ({
+        id: issue.id,
+        issue_type: issue.issue_type,
+        page_url: issue.page_url,
+        severity: issue.severity,
+        title: issue.title,
+        description: issue.description,
+      }));
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const resp = await fetch(`${supabaseUrl}/functions/v1/seo-autofix`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${supabaseAnonKey}`,
+          apikey: supabaseAnonKey,
+        },
+        body: JSON.stringify({
+          issues: issuesWithPage,
+          page_analyses: pageAnalyses.map((p) => ({
+            url: p.url,
+            title: p.title,
+            metaDescription: p.metaDescription,
+            wordCount: p.wordCount,
+            h1Count: p.h1Count,
+            h2Count: p.h2Count,
+            imagesTotal: p.imagesTotal,
+            imagesWithoutAlt: p.imagesWithoutAlt,
+            jsonLdScripts: p.jsonLdScripts,
+            ogImage: p.ogImage,
+            ogTitle: p.ogTitle,
+            twitterCard: p.twitterCard,
+            hasNoindex: p.hasNoindex,
+            hasNofollow: p.hasNofollow,
+          })),
+        }),
+      });
+
+      if (!resp.ok) {
+        const errBody = await resp.text();
+        throw new Error(`Auto-fix failed (${resp.status}): ${errBody}`);
+      }
+
+      const result: AutoFixResult = await resp.json();
+      setAutoFixResult(result);
+      await loadData();
+    } catch (e) {
+      setError(`Auto-fix failed: ${(e as Error).message}`);
+    }
+    setAutoFixing(false);
   };
 
   const handleFixIssue = async (id: string) => {
@@ -93,6 +197,7 @@ export default function SeoBotPage() {
   const latestAudit = audits[0];
   const openIssues = issues.filter((i) => i.status === "open");
   const filteredIssues = filterSeverity === "all" ? openIssues : openIssues.filter((i) => i.severity === filterSeverity);
+  const autoFixableCount = openIssues.filter((i) => AUTOFIXABLE_TYPES.includes(i.issue_type)).length;
 
   const severityIcon = (s: string) => {
     if (s === "critical") return <AlertCircle size={16} className="text-red-600" />;
@@ -128,20 +233,68 @@ export default function SeoBotPage() {
         title="SEO Bot"
         description="Automatic crawler that analyzes your entire website for SEO health."
         action={
-          <Button onClick={handleCrawl} disabled={crawling}>
-            {crawling ? (
-              <><RefreshCw size={16} className="animate-spin" /> Crawling...</>
-            ) : (
-              <><RefreshCw size={16} /> Run Crawl</>
-            )}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleAutoFix}
+              disabled={autoFixing || openIssues.length === 0}
+              variant="secondary"
+            >
+              {autoFixing ? (
+                <><Loader2 size={16} className="animate-spin" /> Fixing...</>
+              ) : (
+                <><Wand2 size={16} /> Auto-Fix ({autoFixableCount})</>
+              )}
+            </Button>
+            <Button onClick={handleCrawl} disabled={crawling}>
+              {crawling ? (
+                <><RefreshCw size={16} className="animate-spin" /> Crawling...</>
+              ) : (
+                <><RefreshCw size={16} /> Run Crawl</>
+              )}
+            </Button>
+          </div>
         }
       />
 
       {error && (
         <Card className="p-4 mb-4 border border-red-200">
-          <div className="flex items-center gap-2 text-sm text-red-600">
-            <AlertCircle size={16} /> {error}
+          <div className="flex items-start gap-2 text-sm text-red-600">
+            <XCircle size={16} className="shrink-0 mt-0.5" /> <span>{error}</span>
+          </div>
+        </Card>
+      )}
+
+      {autoFixResult && (
+        <Card className="p-5 mb-4 border border-green-200 bg-green-50">
+          <div className="flex items-start gap-3">
+            <CheckCircle size={20} className="text-green-600 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-green-800 mb-1">
+                Auto-Fix Complete: {autoFixResult.issues_auto_fixed} issues fixed across {autoFixResult.pages_fixed} pages
+              </p>
+              {autoFixResult.manual_review_needed > 0 && (
+                <p className="text-xs text-green-700 mb-2">
+                  {autoFixResult.manual_review_needed} page(s) still need manual review (image alt text, H1 structure, or content additions).
+                </p>
+              )}
+              <div className="space-y-2 mt-3">
+                {autoFixResult.fixes.map((fix) => (
+                  <div key={fix.page_key} className="bg-white rounded-lg p-3">
+                    <p className="text-xs font-medium text-neutral-900 mb-1">{fix.page_key}</p>
+                    <ul className="space-y-1">
+                      {fix.actions.map((action, i) => (
+                        <li key={i} className="text-xs text-neutral-600 flex items-start gap-1.5">
+                          <span className={`shrink-0 mt-0.5 ${action.includes("manual review") ? "text-amber-500" : "text-green-500"}`}>
+                            {action.includes("manual review") ? "⚠" : "✓"}
+                          </span>
+                          {action}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </Card>
       )}
@@ -203,6 +356,26 @@ export default function SeoBotPage() {
             ))}
           </div>
 
+          {/* Auto-fix banner */}
+          {autoFixableCount > 0 && (
+            <Card className="p-5 border border-blue-200 bg-blue-50">
+              <div className="flex items-center gap-3">
+                <Wand2 size={20} className="text-blue-600 shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-blue-900">
+                    {autoFixableCount} issue{autoFixableCount > 1 ? "s" : ""} can be automatically fixed
+                  </p>
+                  <p className="text-xs text-blue-700 mt-0.5">
+                    The SEO Bot can auto-generate missing meta tags, canonical URLs, structured data, and fix robots directives. Issues requiring content changes are flagged for manual review.
+                  </p>
+                </div>
+                <Button onClick={handleAutoFix} disabled={autoFixing} variant="secondary" size="sm">
+                  {autoFixing ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />} Fix Now
+                </Button>
+              </div>
+            </Card>
+          )}
+
           {/* Recent issues */}
           <Card className="p-5 sm:p-6">
             <h3 className="font-serif text-lg font-bold text-neutral-900 mb-4">Recent Issues</h3>
@@ -217,7 +390,12 @@ export default function SeoBotPage() {
                   <div key={issue.id} className="flex items-start gap-3 p-3 rounded-lg bg-neutral-50">
                     {severityIcon(issue.severity)}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-neutral-900 truncate">{issue.title}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-neutral-900 truncate">{issue.title}</p>
+                        {AUTOFIXABLE_TYPES.includes(issue.issue_type) && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium shrink-0">Auto-fixable</span>
+                        )}
+                      </div>
                       <p className="text-xs text-neutral-500 truncate">{issue.page_url}</p>
                     </div>
                     {severityBadge(issue.severity)}
@@ -232,7 +410,7 @@ export default function SeoBotPage() {
       {tab === "issues" && (
         <div className="space-y-4">
           {/* Filter */}
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap items-center">
             {["all", "critical", "high", "medium", "low"].map((f) => (
               <button
                 key={f}
@@ -244,6 +422,11 @@ export default function SeoBotPage() {
                 {f}
               </button>
             ))}
+            {autoFixableCount > 0 && (
+              <Button onClick={handleAutoFix} disabled={autoFixing} variant="secondary" size="sm" className="ml-auto">
+                {autoFixing ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />} Auto-Fix {autoFixableCount} Issue{autoFixableCount > 1 ? "s" : ""}
+              </Button>
+            )}
           </div>
 
           {filteredIssues.length === 0 ? (
@@ -258,13 +441,19 @@ export default function SeoBotPage() {
                   <div className="flex items-start gap-3">
                     {severityIcon(issue.severity)}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <p className="text-sm font-medium text-neutral-900">{issue.title}</p>
                         {severityBadge(issue.severity)}
+                        {AUTOFIXABLE_TYPES.includes(issue.issue_type) && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium">Auto-fixable</span>
+                        )}
                       </div>
                       <p className="text-xs text-neutral-500 mb-1">{issue.page_url}</p>
                       <p className="text-xs text-neutral-600 mb-2">{issue.description}</p>
                       <p className="text-xs text-neutral-500"><span className="font-medium">Fix:</span> {issue.recommendation}</p>
+                      {issue.fix_notes && (
+                        <p className="text-xs text-green-600 mt-1"><span className="font-medium">Note:</span> {issue.fix_notes}</p>
+                      )}
                       <div className="flex gap-2 mt-3">
                         <Button size="sm" variant="secondary" onClick={() => handleFixIssue(issue.id)}>
                           <CheckCircle size={14} /> Mark Fixed
@@ -323,7 +512,7 @@ export default function SeoBotPage() {
               <p>{`  <url><loc>/</loc><priority>1.0</priority></url>`}</p>
               <p>{`  <url><loc>/books</loc><priority>0.9</priority></url>`}</p>
               <p>{`  <url><loc>/authors</loc><priority>0.9</priority></url>`}</p>
-              <p>{`  ... (all books and authors)</p>`}</p>
+              <p>{`  ... (all books and authors)`}</p>
               <p>{`</urlset>`}</p>
             </div>
           </Card>
@@ -355,9 +544,14 @@ export default function SeoBotPage() {
             Results are saved to the database. The crawl runs with a 200ms delay between requests to avoid
             overwhelming the server. Only public pages are crawled — admin pages are excluded.
           </p>
-          <Button onClick={handleCrawl} disabled={crawling}>
-            {crawling ? <><RefreshCw size={16} className="animate-spin" /> Crawling in progress...</> : <><Activity size={16} /> Start New Crawl</>}
-          </Button>
+          <div className="flex gap-2 flex-wrap">
+            <Button onClick={handleCrawl} disabled={crawling}>
+              {crawling ? <><RefreshCw size={16} className="animate-spin" /> Crawling in progress...</> : <><Activity size={16} /> Start New Crawl</>}
+            </Button>
+            <Button onClick={handleAutoFix} disabled={autoFixing || openIssues.length === 0} variant="secondary">
+              {autoFixing ? <><Loader2 size={16} className="animate-spin" /> Auto-fixing...</> : <><Wand2 size={16} /> Auto-Fix Issues</>}
+            </Button>
+          </div>
           {lastResult && (
             <div className="mt-4 p-4 bg-green-50 rounded-lg">
               <p className="text-sm text-green-700">

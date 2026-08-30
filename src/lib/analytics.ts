@@ -10,11 +10,12 @@ import { supabase } from "./supabase";
  * - Generates persistent visitor_id (localStorage) and session_id
  *   (sessionStorage, rotates per browser session).
  * - Parses User-Agent client-side for device/browser/OS (best-effort).
+ * - Sends events through the `analytics-track` edge function, which
+ *   enriches them with IP-based geolocation (country, region, city)
+ *   before inserting into the database.
  * - Uses the `sendBeacon` API when available so events are not lost
  *   on page unload; falls back to fetch keepalive.
  * - Never tracks admin routes (paths starting with /admin).
- * - All writes go through the public INSERT RLS policy on
- *   analytics_events.
  */
 
 const VISITOR_KEY = "pp_visitor_id";
@@ -131,12 +132,29 @@ function track(opts: TrackOptions): void {
     metadata: opts.metadata ?? {},
   };
 
-  // Use Supabase client — the anon key has INSERT permission via RLS.
+  // Send through the analytics-track edge function for IP geo-enrichment.
   // Fire-and-forget; errors are silently ignored to avoid disrupting UX.
-  supabase.from("analytics_events").insert(payload).then(
-    () => {},
-    () => {}
-  );
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const endpoint = `${supabaseUrl}/functions/v1/analytics-track`;
+  const payloadJson = JSON.stringify(payload);
+
+  if (navigator.sendBeacon) {
+    const blob = new Blob([payloadJson], { type: "application/json" });
+    const ok = navigator.sendBeacon(endpoint, blob);
+    if (ok) return;
+  }
+
+  fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${supabaseAnonKey}`,
+      apikey: supabaseAnonKey,
+    },
+    body: payloadJson,
+    keepalive: true,
+  }).then(() => {}, () => {});
 }
 
 export function trackPageView(path?: string): void {
