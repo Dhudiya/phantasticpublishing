@@ -1,5 +1,9 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "rewrites": [
+    { "source": "/sitemap.xml", "destination": "https://vzfammhxwgymbsgypunr.supabase.co/functions/v1/sitemap" },
+    { "source": "/robots.txt", "destination": "https://vzfammhxwgymbsgypunr.supabase.co/functions/v1/robots" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

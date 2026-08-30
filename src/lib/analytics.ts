@@ -134,16 +134,11 @@ function track(opts: TrackOptions): void {
 
   // Send through the analytics-track edge function for IP geo-enrichment.
   // Fire-and-forget; errors are silently ignored to avoid disrupting UX.
+  // We always use fetch with keepalive (not sendBeacon) because sendBeacon
+  // cannot set the Authorization/apikey headers the Supabase gateway expects.
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
   const endpoint = `${supabaseUrl}/functions/v1/analytics-track`;
-  const payloadJson = JSON.stringify(payload);
-
-  if (navigator.sendBeacon) {
-    const blob = new Blob([payloadJson], { type: "application/json" });
-    const ok = navigator.sendBeacon(endpoint, blob);
-    if (ok) return;
-  }
 
   fetch(endpoint, {
     method: "POST",
@@ -152,7 +147,7 @@ function track(opts: TrackOptions): void {
       Authorization: `Bearer ${supabaseAnonKey}`,
       apikey: supabaseAnonKey,
     },
-    body: payloadJson,
+    body: JSON.stringify(payload),
     keepalive: true,
   }).then(() => {}, () => {});
 }

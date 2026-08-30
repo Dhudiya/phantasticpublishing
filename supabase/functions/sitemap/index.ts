@@ -1,5 +1,4 @@
-import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
@@ -16,7 +15,10 @@ serve(async (req: Request) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, serviceKey);
 
-  const origin = new URL(req.url).origin;
+  // Build the public origin from the incoming request
+  const reqUrl = new URL(req.url);
+  const origin = `${reqUrl.protocol}//${reqUrl.host}`;
+
   const today = new Date().toISOString().split("T")[0];
 
   const urls: { loc: string; lastmod?: string; priority: string }[] = [
