@@ -24,23 +24,21 @@ Deno.serve(async (req: Request) => {
     const realIp = req.headers.get("x-real-ip");
     const clientIp = forward ? forward.split(",")[0].trim() : realIp || "";
 
-    // Geo-lookup using ip-api.com (free, no API key, 45 req/min limit)
+    // Geo-lookup using geojs.io (free, HTTPS, no API key required)
     let country: string | null = null;
     let region: string | null = null;
     let city: string | null = null;
 
     if (clientIp && clientIp !== "127.0.0.1" && clientIp !== "::1") {
       try {
-        const geoResp = await fetch(`http://ip-api.com/json/${clientIp}?fields=status,country,regionName,city`, {
-          signal: AbortSignal.timeout(3000),
+        const geoResp = await fetch(`https://get.geojs.io/v1/ip/geo/${clientIp}.json`, {
+          signal: AbortSignal.timeout(4000),
         });
         if (geoResp.ok) {
           const geo = await geoResp.json();
-          if (geo.status === "success") {
-            country = geo.country || null;
-            region = geo.regionName || null;
-            city = geo.city || null;
-          }
+          country = geo.country || null;
+          region = geo.region || null;
+          city = geo.city || null;
         }
       } catch {
         // Geo lookup failed — continue without geo data

@@ -6,8 +6,24 @@ import { supabase } from "./supabase";
  *
  * The analyzer fetches pages via fetch() from the browser, parses the
  * response DOM with DOMParser, and checks for common SEO problems.
- * It uses the authenticated Supabase client to write audit results.
+ *
+ * IMPORTANT: Because this is a single-page app, meta tags are injected
+ * at runtime by JavaScript (the SEO component), not present in the
+ * server's raw HTML. The analyzer therefore cross-references the
+ * seo_page_meta table — if an auto-fix has been stored there, the
+ * corresponding issue is suppressed so previously fixed problems don't
+ * reappear on every crawl.
  */
+
+// Issue types that the auto-fix edge function can resolve via seo_page_meta
+const AUTOFIXABLE_TYPES = new Set([
+  "missing_title", "title_too_short", "title_too_long",
+  "missing_meta_description", "meta_description_too_long",
+  "missing_canonical", "missing_og_title", "missing_og_image",
+  "missing_twitter_card", "missing_structured_data",
+  "noindex_directive", "nofollow_directive",
+  "duplicate_title", "duplicate_meta_description",
+]);
 
 export interface SeoIssue {
   severity: "critical" | "high" | "medium" | "low";
@@ -405,12 +421,58 @@ export async function analyzePage(url: string): Promise<PageAnalysis> {
 }
 
 /*
+ * Fetch all stored auto-fix metadata from seo_page_meta.
+ * Returns a map of page_key → meta, so the analyzer can suppress
+ * issues that have already been fixed.
+ */
+async function fetchPageMetaMap(): Promise<Map<string, Set<string>>> {
+  const fixedMap = new Map<string, Set<string>>();
+  try {
+    const { data } = await supabase
+      .from("seo_page_meta")
+      .select("page_key, seo_title, seo_description, canonical_url, og_title, og_image, twitter_card, json_ld, robots_index, robots_follow");
+    if (data) {
+      for (const row of data as {
+        page_key: string;
+        seo_title: string | null;
+        seo_description: string | null;
+        canonical_url: string | null;
+        og_title: string | null;
+        og_image: string | null;
+        twitter_card: string | null;
+        json_ld: unknown;
+        robots_index: boolean | null;
+        robots_follow: boolean | null;
+      }[]) {
+        const fixed = new Set<string>();
+        if (row.seo_title) { fixed.add("missing_title"); fixed.add("title_too_short"); fixed.add("title_too_long"); fixed.add("duplicate_title"); }
+        if (row.seo_description) { fixed.add("missing_meta_description"); fixed.add("meta_description_too_long"); fixed.add("duplicate_meta_description"); }
+        if (row.canonical_url) fixed.add("missing_canonical");
+        if (row.og_title) fixed.add("missing_og_title");
+        if (row.og_image) fixed.add("missing_og_image");
+        if (row.twitter_card) fixed.add("missing_twitter_card");
+        if (row.json_ld && Array.isArray(row.json_ld) && row.json_ld.length > 0) fixed.add("missing_structured_data");
+        if (row.robots_index === true) fixed.add("noindex_directive");
+        if (row.robots_follow === true) fixed.add("nofollow_directive");
+        fixedMap.set(row.page_key, fixed);
+      }
+    }
+  } catch {
+    // If fetch fails, don't suppress anything
+  }
+  return fixedMap;
+}
+
+/*
  * Run a full audit: discover all URLs, analyze each page, compute score,
  * and save results to the database.
  */
 export async function runFullAudit(): Promise<AuditResult> {
   const urls = await discoverUrls();
   const pageAnalyses: PageAnalysis[] = [];
+
+  // Fetch stored auto-fix metadata so we can suppress already-fixed issues
+  const fixedMap = await fetchPageMetaMap();
 
   // Crawl with a small delay to avoid overwhelming the server
   for (const url of urls) {
@@ -420,9 +482,20 @@ export async function runFullAudit(): Promise<AuditResult> {
     await new Promise((r) => setTimeout(r, 200));
   }
 
-  // Collect all issues
+  // Collect all issues, suppressing any that have been auto-fixed in seo_page_meta
   const allIssues: SeoIssue[] = [];
-  pageAnalyses.forEach((p) => allIssues.push(...p.issues));
+  pageAnalyses.forEach((p) => {
+    const pagePath = (() => { try { return new URL(p.url).pathname; } catch { return p.url; } })();
+    const fixedForPage = fixedMap.get(pagePath);
+
+    for (const issue of p.issues) {
+      // Suppress auto-fixable issues that already have a fix stored
+      if (fixedForPage && AUTOFIXABLE_TYPES.has(issue.issue_type) && fixedForPage.has(issue.issue_type)) {
+        continue;
+      }
+      allIssues.push(issue);
+    }
+  });
 
   // Check for duplicate titles across pages
   const titleMap = new Map<string, string[]>();
@@ -435,14 +508,21 @@ export async function runFullAudit(): Promise<AuditResult> {
   });
   titleMap.forEach((pages, title) => {
     if (pages.length > 1) {
-      allIssues.push({
-        severity: "high",
-        issue_type: "duplicate_title",
-        page_url: pages.join(", "),
-        title: `Duplicate title: "${title}"`,
-        description: `${pages.length} pages share the same title tag.`,
-        recommendation: "Make each page's title unique to avoid cannibalization.",
+      // Suppress if all affected pages have a title fix stored
+      const allFixed = pages.every((pg) => {
+        const path = (() => { try { return new URL(pg).pathname; } catch { return pg; } })();
+        return fixedMap.get(path)?.has("duplicate_title");
       });
+      if (!allFixed) {
+        allIssues.push({
+          severity: "high",
+          issue_type: "duplicate_title",
+          page_url: pages.join(", "),
+          title: `Duplicate title: "${title}"`,
+          description: `${pages.length} pages share the same title tag.`,
+          recommendation: "Make each page's title unique to avoid cannibalization.",
+        });
+      }
     }
   });
 
@@ -457,14 +537,21 @@ export async function runFullAudit(): Promise<AuditResult> {
   });
   descMap.forEach((pages, desc) => {
     if (pages.length > 1) {
-      allIssues.push({
-        severity: "medium",
-        issue_type: "duplicate_meta_description",
-        page_url: pages.join(", "),
-        title: "Duplicate meta description",
-        description: `${pages.length} pages share the same meta description.`,
-        recommendation: "Write a unique meta description for each page.",
+      // Suppress if all affected pages have a description fix stored
+      const allFixed = pages.every((pg) => {
+        const path = (() => { try { return new URL(pg).pathname; } catch { return pg; } })();
+        return fixedMap.get(path)?.has("duplicate_meta_description");
       });
+      if (!allFixed) {
+        allIssues.push({
+          severity: "medium",
+          issue_type: "duplicate_meta_description",
+          page_url: pages.join(", "),
+          title: "Duplicate meta description",
+          description: `${pages.length} pages share the same meta description.`,
+          recommendation: "Write a unique meta description for each page.",
+        });
+      }
     }
   });
 
