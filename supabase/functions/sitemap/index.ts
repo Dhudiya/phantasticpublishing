@@ -15,11 +15,8 @@ Deno.serve(async (req: Request) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, serviceKey);
 
-  // Build the public origin from the incoming request
   const reqUrl = new URL(req.url);
   const origin = `${reqUrl.protocol}//${reqUrl.host}`;
-
-  const today = new Date().toISOString().split("T")[0];
 
   const urls: { loc: string; lastmod?: string; priority: string }[] = [
     { loc: `${origin}/`, priority: "1.0" },
@@ -31,14 +28,39 @@ Deno.serve(async (req: Request) => {
   ];
 
   try {
-    const { data: books } = await supabase.from("books").select("slug,updated_at").order("sort_order");
-    (books ?? []).forEach((b: { slug: string; updated_at?: string }) => {
-      urls.push({ loc: `${origin}/books/${b.slug}`, lastmod: b.updated_at?.split("T")[0], priority: "0.8" });
+    // Load seo_page_meta to check for noindex pages
+    const [booksResp, authorsResp, metaResp] = await Promise.all([
+      supabase.from("books").select("slug,updated_at").order("sort_order"),
+      supabase.from("authors").select("slug,updated_at").order("sort_order"),
+      supabase.from("seo_page_meta").select("page_key,robots_index"),
+    ]);
+
+    // Build a set of noindex page keys to exclude
+    const noindexPaths = new Set<string>();
+    (metaResp.data ?? []).forEach((row: { page_key: string; robots_index: boolean | null }) => {
+      if (row.robots_index === false) noindexPaths.add(row.page_key);
     });
 
-    const { data: authors } = await supabase.from("authors").select("slug,updated_at").order("sort_order");
-    (authors ?? []).forEach((a: { slug: string; updated_at?: string }) => {
-      urls.push({ loc: `${origin}/authors/${a.slug}`, lastmod: a.updated_at?.split("T")[0], priority: "0.7" });
+    // Add book URLs (skip noindex or missing slug)
+    (booksResp.data ?? []).forEach((b: { slug: string; updated_at?: string }) => {
+      const path = `/books/${b.slug}`;
+      if (noindexPaths.has(path)) return;
+      urls.push({
+        loc: `${origin}${path}`,
+        lastmod: b.updated_at?.split("T")[0],
+        priority: "0.8",
+      });
+    });
+
+    // Add author URLs (skip noindex or missing slug)
+    (authorsResp.data ?? []).forEach((a: { slug: string; updated_at?: string }) => {
+      const path = `/authors/${a.slug}`;
+      if (noindexPaths.has(path)) return;
+      urls.push({
+        loc: `${origin}${path}`,
+        lastmod: a.updated_at?.split("T")[0],
+        priority: "0.7",
+      });
     });
   } catch {
     // If DB fails, still return static pages
