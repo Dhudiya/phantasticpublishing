@@ -45,7 +45,17 @@ export default function AuthorDetailPage() {
 
   return (
     <div>
-      <SEO title={author.name} description={author.short_bio} image={author.photo} type="article" canonicalPath={`/authors/${author.slug}`} />
+      <SEO
+        pageType="author"
+        entityName={author.name}
+        entityDescription={author.biography}
+        shortDescription={author.short_bio}
+        bio={author.biography}
+        entityImage={author.photo}
+        entityType="article"
+        canonicalPath={`/authors/${author.slug}`}
+        bookTitles={books.map(b => b.title)}
+      />
       <SchemaInjector schemas={[
         buildPersonSchema({ name: author.name, bio: author.biography, photo: author.photo, genre: author.genre, website: author.social_website, twitter: author.social_twitter, instagram: author.social_instagram }),
         buildBreadcrumbSchema([{ name: "Home", url: "/" }, { name: "Authors", url: "/authors" }, { name: author.name, url: `/authors/${author.slug}` }]),

@@ -12,7 +12,7 @@ export default function AuthorsPage() {
 
   return (
     <div>
-      <SEO title="Authors" description="Discover the talented authors behind our published books — their stories, awards, and published works." image={content.hero.background_image} canonicalPath="/authors" />
+      <SEO pageType="authors" canonicalPath="/authors" entityImage={content.hero.background_image} />
       <SchemaInjector schemas={[buildBreadcrumbSchema([{ name: "Home", url: "/" }, { name: "Authors", url: "/authors" }])]} />
       {/* Hero */}
       <section className="relative pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-12 sm:pb-16 md:pb-20 lg:pb-20 bg-neutral-950 text-white">

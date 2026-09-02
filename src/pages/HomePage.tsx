@@ -19,7 +19,7 @@ export default function HomePage() {
 
   return (
     <div>
-      <SEO canonicalPath="/" />
+      <SEO pageType="home" canonicalPath="/" />
       <SchemaInjector schemas={[]} />
       {/* Hero */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-neutral-950">

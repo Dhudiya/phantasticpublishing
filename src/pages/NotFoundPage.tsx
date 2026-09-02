@@ -5,7 +5,7 @@ import SchemaInjector from "../components/SchemaInjector";
 export default function NotFoundPage() {
   return (
     <div>
-      <SEO title="Page Not Found" description="The page you were looking for could not be found." canonicalPath="/404" noindex />
+      <SEO pageType="generic" pageName="Page Not Found" canonicalPath="/404" noindex />
       <SchemaInjector schemas={[]} />
       <section className="min-h-screen flex items-center justify-center bg-neutral-950 text-white px-4">
         <div className="text-center max-w-md">

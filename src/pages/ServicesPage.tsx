@@ -22,7 +22,7 @@ export default function ServicesPage() {
 
   return (
     <div>
-      <SEO title="Services" description="Explore our publishing services — editing, proofreading, cover design, printing, distribution, and marketing." image={content.hero.background_image} canonicalPath="/services" />
+      <SEO pageType="services" canonicalPath="/services" entityImage={content.hero.background_image} serviceNames={services.map(s => s.title)} />
       <SchemaInjector schemas={[buildBreadcrumbSchema([{ name: "Home", url: "/" }, { name: "Services", url: "/services" }])]} />
       {/* Hero */}
       <section className="relative pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-12 sm:pb-16 md:pb-20 lg:pb-20 bg-neutral-950 text-white">

@@ -34,7 +34,7 @@ export default function BooksPage() {
 
   return (
     <div>
-      <SEO title="Books" description="Browse our full catalog of published books across every genre — fiction, non-fiction, poetry, and more." image={content.hero.background_image} canonicalPath="/books" />
+      <SEO pageType="books" canonicalPath="/books" entityImage={content.hero.background_image} />
       <SchemaInjector schemas={[buildBreadcrumbSchema([{ name: "Home", url: "/" }, { name: "Books", url: "/books" }])]} />
       {/* Hero */}
       <section className="relative pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-12 sm:pb-16 md:pb-20 lg:pb-20 bg-neutral-950 text-white">

@@ -20,7 +20,7 @@ export default function AboutPage() {
 
   return (
     <div>
-      <SEO title="About Us" description="Learn about Phantastic Publishing — our story, mission, vision, and the team dedicated to bringing bold literary voices to life." image={content.hero.background_image} canonicalPath="/about" />
+      <SEO pageType="about" canonicalPath="/about" entityImage={content.hero.background_image} />
       <SchemaInjector schemas={[buildBreadcrumbSchema([{ name: "Home", url: "/" }, { name: "About", url: "/about" }])]} />
       {/* Hero */}
       <section className="relative pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-12 sm:pb-16 md:pb-20 lg:pb-28 bg-neutral-950 text-white">

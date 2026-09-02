@@ -56,7 +56,20 @@ export default function BookDetailPage() {
 
   return (
     <div>
-      <SEO title={book.title} description={book.short_description} image={book.cover_image} type="article" canonicalPath={`/books/${book.slug}`} />
+      <SEO
+        pageType="book"
+        entityName={book.title}
+        entityDescription={book.description}
+        shortDescription={book.short_description}
+        entityImage={book.cover_image}
+        entityType="article"
+        canonicalPath={`/books/${book.slug}`}
+        authorName={author?.name}
+        genre={book.genre}
+        year={book.year}
+        pages={book.pages}
+        isbn={book.isbn}
+      />
       <SchemaInjector schemas={[
         buildBookSchema({ title: book.title, description: book.description, cover_image: book.cover_image, isbn: book.isbn, year: book.year, author_name: author?.name ?? "" }),
         buildBreadcrumbSchema([{ name: "Home", url: "/" }, { name: "Books", url: "/books" }, { name: book.title, url: `/books/${book.slug}` }]),
