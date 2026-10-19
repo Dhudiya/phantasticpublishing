@@ -18,7 +18,6 @@ Deno.serve(async (req: Request) => {
   // Always use the site's configured production domain. Never derive URLs
   // from the request host — that would expose the edge-function/database
   // domain in the sitemap.
-  const supabase = createClient(supabaseUrl, serviceKey);
   const { data: settingsRow } = await supabase
     .from("site_settings")
     .select("site_domain")
