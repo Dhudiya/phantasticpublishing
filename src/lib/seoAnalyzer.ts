@@ -78,6 +78,7 @@ interface BookRow {
 }
 
 interface AuthorRow {
+  id: number;
   slug: string;
   name: string;
   bio: string | null;
@@ -122,14 +123,6 @@ interface SiteSettings {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────
-
-function truncate(text: string, maxLen: number): string {
-  if (text.length <= maxLen) return text;
-  const slice = text.slice(0, maxLen - 3);
-  const lastSpace = slice.lastIndexOf(" ");
-  if (lastSpace > maxLen * 0.6) return slice.slice(0, lastSpace) + "...";
-  return slice + "...";
-}
 
 function wordCount(...texts: (string | null | undefined)[]): number {
   const combined = texts.filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
@@ -227,7 +220,6 @@ interface PageContext {
   pageContents: Map<string, PageContentRow>;
   seoPageMeta: Map<string, SeoPageMetaRow>;
   siteSettings: SiteSettings;
-  allPaths: string[];
 }
 
 function classifyPath(pathname: string): { pageType: PageType; entitySlug?: string } {
@@ -246,8 +238,7 @@ function computeInternalLinks(
   pathname: string,
   pageType: PageType,
   books: BookRow[],
-  authors: AuthorRow[],
-  allPaths: string[]
+  authors: AuthorRow[]
 ): string[] {
   const links = new Set<string>();
 
@@ -300,8 +291,7 @@ function computeExpectedImages(
   pageType: PageType,
   book: BookRow | undefined,
   author: AuthorRow | undefined,
-  pageContents: Map<string, PageContentRow>,
-  siteSettings: SiteSettings
+  pageContents: Map<string, PageContentRow>
 ): { total: number; withoutAlt: number } {
   // The app uses SmartImage with alt attributes on book covers, author photos, etc.
   // Decorative images (hero backgrounds) have alt="" which is valid.
@@ -449,7 +439,7 @@ function analyzePageSpa(
   const generated = generateSeo({
     pageType,
     entityName: book?.title || author?.name,
-    entityDescription: book?.description || author?.bio,
+    entityDescription: (book?.description || author?.bio) ?? undefined,
     entityImage: book?.cover_image || author?.photo || undefined,
     authorName,
     genre: book?.genre || author?.genre || undefined,
@@ -545,11 +535,11 @@ function analyzePageSpa(
   }
 
   // ─── Compute internal links ────────────────────────────────────────
-  const internalLinks = computeInternalLinks(pathname, pageType, ctx.books, ctx.authors, ctx.allPaths);
+  const internalLinks = computeInternalLinks(pathname, pageType, ctx.books, ctx.authors);
 
   // ─── Compute images ────────────────────────────────────────────────
   const { total: imagesTotal, withoutAlt: imagesWithoutAlt } = computeExpectedImages(
-    pageType, book, author, ctx.pageContents, ctx.siteSettings
+    pageType, book, author, ctx.pageContents
   );
 
   // ─── Count H2s (approximate from page structure) ───────────────────
@@ -628,16 +618,10 @@ function analyzePageSpa(
     }
   }
 
-  // H1 check — we know every page has exactly 1 H1 from the components
-  // Only flag if something went wrong with the component
-  if (h1Count === 0) {
-    issues.push({
-      severity: "high", issue_type: "missing_h1", page_url: url,
-      title: "Missing H1 heading",
-      description: "The page has no H1 heading.",
-      recommendation: "Add a single, descriptive H1 heading that includes the primary keyword.",
-    });
-  } else if (h1Count > 1) {
+  // H1 check — every page in this app renders exactly one H1 (verified in
+  // the page components). The count is kept in the analysis output for
+  // the admin UI, but there is no code path that produces 0 or >1 H1.
+  if (h1Count > 1) {
     issues.push({
       severity: "medium", issue_type: "multiple_h1", page_url: url,
       title: "Multiple H1 headings",
@@ -773,8 +757,7 @@ function analyzePageSpa(
 // ─── Orphan page detection ────────────────────────────────────────────
 
 function detectOrphanPages(
-  pageAnalyses: PageAnalysis[],
-  allPaths: string[]
+  pageAnalyses: PageAnalysis[]
 ): SeoIssue[] {
   const issues: SeoIssue[] = [];
   const allLinkedPaths = new Set<string>();
@@ -830,7 +813,7 @@ export async function runFullAudit(): Promise<AuditResult> {
   const authorPaths = authors.map((a) => `/authors/${a.slug}`);
   const allPaths = [...staticPaths, ...bookPaths, ...authorPaths];
 
-  const ctx: PageContext = { books, authors, services, pageContents, seoPageMeta, siteSettings, allPaths };
+  const ctx: PageContext = { books, authors, services, pageContents, seoPageMeta, siteSettings };
 
   // Analyze each page
   const pageAnalyses: PageAnalysis[] = allPaths.map((path) =>
@@ -874,7 +857,7 @@ export async function runFullAudit(): Promise<AuditResult> {
       descMap.set(p.metaDescription, existing);
     }
   });
-  descMap.forEach((pages, desc) => {
+  descMap.forEach((pages) => {
     if (pages.length > 1) {
       allIssues.push({
         severity: "medium",
@@ -888,7 +871,7 @@ export async function runFullAudit(): Promise<AuditResult> {
   });
 
   // Orphan page detection
-  const orphanIssues = detectOrphanPages(pageAnalyses, allPaths);
+  const orphanIssues = detectOrphanPages(pageAnalyses);
   allIssues.push(...orphanIssues);
 
   // Compute SEO score

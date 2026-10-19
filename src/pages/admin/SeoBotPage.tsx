@@ -133,12 +133,17 @@ export default function SeoBotPage() {
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) {
+        throw new Error("You must be signed in to run auto-fix.");
+      }
 
       const resp = await fetch(`${supabaseUrl}/functions/v1/seo-autofix`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${supabaseAnonKey}`,
+          Authorization: `Bearer ${accessToken}`,
           apikey: supabaseAnonKey,
         },
         body: JSON.stringify({

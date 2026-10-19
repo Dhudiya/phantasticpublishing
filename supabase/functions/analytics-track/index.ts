@@ -121,7 +121,8 @@ Deno.serve(async (req: Request) => {
       .insert(event);
 
     if (insertError) {
-      return new Response(JSON.stringify({ error: "Insert failed", detail: insertError.message }), {
+      console.error("analytics insert failed:", insertError.message);
+      return new Response(JSON.stringify({ error: "Insert failed" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -131,8 +132,8 @@ Deno.serve(async (req: Request) => {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: (err as Error).message }), {
+  } catch {
+    return new Response(JSON.stringify({ error: "Internal error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
