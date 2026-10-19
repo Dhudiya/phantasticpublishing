@@ -27,6 +27,8 @@ export default function HomePage() {
           <SmartImage
             src={content.hero.background_image}
             alt=""
+            priority
+            targetWidth={1920}
             className="w-full h-full"
             imgClassName="w-full h-full object-cover opacity-30"
           />
@@ -109,6 +111,9 @@ export default function HomePage() {
                     <SmartImage
                       src={book.cover_image}
                       alt={book.title}
+                      targetWidth={600}
+                      width={600}
+                      height={800}
                       className="aspect-[3/4] mb-3 sm:mb-4 md:mb-5 bg-neutral-100 rounded-lg sm:rounded-lg md:rounded-none"
                       imgClassName="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
                     />
@@ -277,6 +282,9 @@ export default function HomePage() {
                     <SmartImage
                       src={author.photo}
                       alt={author.name}
+                      targetWidth={600}
+                      width={600}
+                      height={600}
                       className="aspect-square mb-3 sm:mb-4 md:mb-5 rounded-lg sm:rounded-lg md:rounded-none"
                       imgClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />

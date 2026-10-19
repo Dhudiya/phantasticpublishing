@@ -77,14 +77,30 @@ export interface Service {
 
 // ─── Generic hook ───────────────────────────────────────────────
 
+/*
+ * Module-level cache: listing data is shared across pages (home, listing
+ * pages, detail pages all read books/authors). Caching per table+select
+ * means navigating between pages reuses already-fetched rows instead of
+ * re-querying the database on every mount. TTL keeps admin edits visible.
+ */
+const queryCache = new Map<string, { data: unknown; fetchedAt: number }>();
+const CACHE_TTL_MS = 60_000;
+
 function useSupabaseQuery<T>(
   table: string,
   select: string = "*",
   orderBy: string = "sort_order",
   orderAsc: boolean = true
 ) {
-  const [data, setData] = useState<T[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cacheKey = `${table}:${select}:${orderBy}:${orderAsc}`;
+  const [data, setData] = useState<T[]>(() => {
+    const cached = queryCache.get(cacheKey);
+    return cached ? (cached.data as T[]) : [];
+  });
+  const [loading, setLoading] = useState(() => {
+    const cached = queryCache.get(cacheKey);
+    return !cached || Date.now() - cached.fetchedAt > CACHE_TTL_MS;
+  });
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
@@ -99,14 +115,21 @@ function useSupabaseQuery<T>(
       setError(err.message);
       setData([]);
     } else {
+      queryCache.set(cacheKey, { data: rows ?? [], fetchedAt: Date.now() });
       setData((rows as T[]) ?? []);
     }
     setLoading(false);
-  }, [table, select, orderBy, orderAsc]);
+  }, [table, select, orderBy, orderAsc, cacheKey]);
 
   useEffect(() => {
+    const cached = queryCache.get(cacheKey);
+    if (cached && Date.now() - cached.fetchedAt <= CACHE_TTL_MS) {
+      setData(cached.data as T[]);
+      setLoading(false);
+      return;
+    }
     fetchData();
-  }, [fetchData]);
+  }, [fetchData, cacheKey]);
 
   return { data, loading, error, refetch: fetchData };
 }
