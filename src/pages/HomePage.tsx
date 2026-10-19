@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Star, ChevronRight, BookOpen, Award, Send } from "lucide-react";
+import { ArrowRight, Star, ChevronRight, BookOpen, Award, Send, Printer } from "lucide-react";
 import { useBooks, useAuthors, useTestimonials, useServices } from "../hooks/useData";
 import { usePageContent } from "../hooks/usePageContent";
 import Reveal from "../components/RevealSection";
@@ -217,6 +217,7 @@ export default function HomePage() {
                       {service.icon === "PenTool" && <BookOpen size={18} className="text-black group-hover:text-white transition-colors sm:w-5 sm:h-5" />}
                       {service.icon === "CheckCircle" && <Award size={18} className="text-black group-hover:text-white transition-colors sm:w-5 sm:h-5" />}
                       {service.icon === "Palette" && <Star size={18} className="text-black group-hover:text-white transition-colors sm:w-5 sm:h-5" />}
+                      {service.icon === "Printer" && <Printer size={18} className="text-black group-hover:text-white transition-colors sm:w-5 sm:h-5" />}
                     </div>
                     <h3 className="font-serif text-lg sm:text-xl font-bold mb-2 sm:mb-3">
                       {service.title}
