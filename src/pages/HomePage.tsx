@@ -164,16 +164,16 @@ export default function HomePage() {
               </div>
             </Reveal>
             <Reveal delay={150}>
-              <div className="relative">
+              <div className="relative w-1/2 mx-auto lg:w-[30%]">
                 <SmartImage
                   src={content.about_intro.image}
                   alt="Bookshelves"
-                  className="aspect-[4/5] w-2/3 mx-auto lg:w-[40%] rounded-lg sm:rounded-lg md:rounded-none"
+                  className="aspect-[4/5] rounded-lg sm:rounded-lg md:rounded-none"
                   imgClassName="w-full h-full object-cover rounded-lg sm:rounded-lg md:rounded-none shadow-lg shadow-neutral-900/10"
                 />
-                <div className="absolute -bottom-4 sm:-bottom-6 -left-2 sm:-left-6 bg-white p-4 sm:p-6 shadow-xl rounded-xl sm:rounded-xl md:rounded-none max-w-[180px] sm:max-w-[240px]">
-                  <p className="font-serif text-3xl sm:text-4xl font-bold">{content.about_intro.stat_value}</p>
-                  <p className="text-xs sm:text-sm text-neutral-500">{content.about_intro.stat_label}</p>
+                <div className="absolute -bottom-4 sm:-bottom-5 -left-3 sm:-left-5 bg-white p-3 sm:p-4 shadow-xl rounded-xl sm:rounded-xl md:rounded-none max-w-[140px] sm:max-w-[180px]">
+                  <p className="font-serif text-2xl sm:text-3xl font-bold">{content.about_intro.stat_value}</p>
+                  <p className="text-[11px] sm:text-xs text-neutral-500">{content.about_intro.stat_label}</p>
                 </div>
               </div>
             </Reveal>
