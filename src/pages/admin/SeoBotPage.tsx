@@ -508,15 +508,16 @@ export default function SeoBotPage() {
           <Card className="p-5 sm:p-6">
             <h3 className="font-serif text-lg font-bold text-neutral-900 mb-2">Sitemap.xml</h3>
             <p className="text-sm text-neutral-500 mb-4">
-              Your dynamic sitemap is served by an edge function at <code className="text-xs bg-neutral-100 px-1.5 py-0.5 rounded">/sitemap.xml</code>.
-              It automatically includes all static pages, books, and authors.
+              Your dynamic sitemap is available at{' '}
+              <a href="https://phantasticpub.com/sitemap.xml" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">https://phantasticpub.com/sitemap.xml</a>.
+              It automatically includes all static pages, books, and authors using your official website domain.
             </p>
             <div className="bg-neutral-900 text-neutral-300 p-4 rounded-lg text-xs font-mono overflow-x-auto">
               <p>{`<?xml version="1.0" encoding="UTF-8"?>`}</p>
               <p>{`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`}</p>
-              <p>{`  <url><loc>/</loc><priority>1.0</priority></url>`}</p>
-              <p>{`  <url><loc>/books</loc><priority>0.9</priority></url>`}</p>
-              <p>{`  <url><loc>/authors</loc><priority>0.9</priority></url>`}</p>
+              <p>{`  <url><loc>https://phantasticpub.com/</loc><priority>1.0</priority></url>`}</p>
+              <p>{`  <url><loc>https://phantasticpub.com/books</loc><priority>0.9</priority></url>`}</p>
+              <p>{`  <url><loc>https://phantasticpub.com/authors</loc><priority>0.9</priority></url>`}</p>
               <p>{`  ... (all books and authors)`}</p>
               <p>{`</urlset>`}</p>
             </div>
@@ -524,14 +525,13 @@ export default function SeoBotPage() {
           <Card className="p-5 sm:p-6">
             <h3 className="font-serif text-lg font-bold text-neutral-900 mb-2">Robots.txt</h3>
             <p className="text-sm text-neutral-500 mb-4">
-              Your robots.txt is served by an edge function at <code className="text-xs bg-neutral-100 px-1.5 py-0.5 rounded">/robots.txt</code>.
-              It allows all crawlers access to public pages and blocks <code>/admin</code>.
+              Your robots.txt allows all crawlers access to public pages and blocks <code className="text-xs bg-neutral-100 px-1.5 py-0.5 rounded">/admin</code>.
             </p>
             <div className="bg-neutral-900 text-neutral-300 p-4 rounded-lg text-xs font-mono">
               <p>User-agent: *</p>
               <p>Allow: /</p>
               <p>Disallow: /admin</p>
-              <p className="mt-2">Sitemap: /sitemap.xml</p>
+              <p className="mt-2">Sitemap: https://phantasticpub.com/sitemap.xml</p>
             </div>
           </Card>
         </div>

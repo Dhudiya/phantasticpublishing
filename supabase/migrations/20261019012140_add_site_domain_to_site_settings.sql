@@ -1,0 +1,1 @@
+ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS site_domain text NOT NULL DEFAULT 'https://phantasticpub.com';

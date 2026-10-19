@@ -8,6 +8,7 @@ export interface FooterLink {
 
 export interface SiteSettings {
   site_name: string;
+  site_domain: string;
   tagline: string;
   logo_light_url: string;
   logo_dark_url: string;
@@ -38,6 +39,7 @@ interface SiteSettingsContextValue {
 
 const defaults: SiteSettings = {
   site_name: "Phantastic Publishing",
+  site_domain: "https://phantasticpub.com",
   tagline: "Bringing Stories to Life",
   logo_light_url: "",
   logo_dark_url: "",

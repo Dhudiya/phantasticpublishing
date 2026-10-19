@@ -16,7 +16,7 @@ Deno.serve(async (req: Request) => {
 Allow: /
 Disallow: /admin
 
-Sitemap: ${origin}/sitemap.xml
+Sitemap: https://phantasticpub.com/sitemap.xml
 `;
 
   return new Response(body, {

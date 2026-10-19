@@ -15,8 +15,17 @@ Deno.serve(async (req: Request) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, serviceKey);
 
-  const reqUrl = new URL(req.url);
-  const origin = `${reqUrl.protocol}//${reqUrl.host}`;
+  // Always use the site's configured production domain. Never derive URLs
+  // from the request host — that would expose the edge-function/database
+  // domain in the sitemap.
+  const supabase = createClient(supabaseUrl, serviceKey);
+  const { data: settingsRow } = await supabase
+    .from("site_settings")
+    .select("site_domain")
+    .eq("id", 1)
+    .maybeSingle();
+  const configured = (settingsRow?.site_domain ?? "").trim().replace(/\/+$/, "");
+  const origin = configured || "https://phantasticpub.com";
 
   const urls: { loc: string; lastmod?: string; priority: string }[] = [
     { loc: `${origin}/`, priority: "1.0" },
