@@ -169,7 +169,7 @@ export default function HomePage() {
                   src={content.about_intro.image}
                   alt="Bookshelves"
                   className="aspect-[4/5] rounded-lg sm:rounded-lg md:rounded-none"
-                  imgClassName="w-full h-full object-cover"
+                  imgClassName="!w-[86%] !h-[86%] !max-w-none absolute inset-0 m-auto object-cover rounded-lg sm:rounded-lg md:rounded-none shadow-lg shadow-neutral-900/10"
                 />
                 <div className="absolute -bottom-4 sm:-bottom-6 -left-2 sm:-left-6 bg-white p-4 sm:p-6 shadow-xl rounded-xl sm:rounded-xl md:rounded-none max-w-[180px] sm:max-w-[240px]">
                   <p className="font-serif text-3xl sm:text-4xl font-bold">{content.about_intro.stat_value}</p>
