@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Star, ChevronRight, BookOpen, Award, Send } from "lucide-react";
+import { ArrowRight, Star, ChevronRight, Award, Send, PenTool, CheckCircle, Palette, Printer, Globe, TrendingUp } from "lucide-react";
 import { useBooks, useAuthors, useTestimonials, useServices } from "../hooks/useData";
 import { usePageContent } from "../hooks/usePageContent";
 import Reveal from "../components/RevealSection";
@@ -16,6 +16,15 @@ export default function HomePage() {
 
   const featuredBooks = books.slice(0, 4);
   const featuredAuthors = authors.slice(0, 4);
+
+  const serviceIconMap: Record<string, React.ReactNode> = {
+    PenTool: <PenTool size={18} className="text-black group-hover:text-white transition-colors sm:w-5 sm:h-5" />,
+    CheckCircle: <Award size={18} className="text-black group-hover:text-white transition-colors sm:w-5 sm:h-5" />,
+    Palette: <Star size={18} className="text-black group-hover:text-white transition-colors sm:w-5 sm:h-5" />,
+    Printer: <Printer size={18} className="text-black group-hover:text-white transition-colors sm:w-5 sm:h-5" />,
+    Globe: <Globe size={18} className="text-black group-hover:text-white transition-colors sm:w-5 sm:h-5" />,
+    TrendingUp: <TrendingUp size={18} className="text-black group-hover:text-white transition-colors sm:w-5 sm:h-5" />,
+  };
 
   return (
     <div>
@@ -214,9 +223,7 @@ export default function HomePage() {
                 <Reveal key={service.id} delay={i * 100}>
                   <div className="group p-5 sm:p-6 md:p-8 border border-neutral-200 hover:border-black rounded-xl sm:rounded-xl md:rounded-none transition-all duration-300 hover:shadow-lg hover:shadow-neutral-200/50">
                     <div className="w-11 h-11 sm:w-12 sm:h-12 bg-neutral-100 group-hover:bg-black rounded-xl sm:rounded-xl md:rounded-none flex items-center justify-center mb-4 sm:mb-5 md:mb-6 transition-colors duration-300">
-                      {service.icon === "PenTool" && <BookOpen size={18} className="text-black group-hover:text-white transition-colors sm:w-5 sm:h-5" />}
-                      {service.icon === "CheckCircle" && <Award size={18} className="text-black group-hover:text-white transition-colors sm:w-5 sm:h-5" />}
-                      {service.icon === "Palette" && <Star size={18} className="text-black group-hover:text-white transition-colors sm:w-5 sm:h-5" />}
+                      {serviceIconMap[service.icon] ?? <Star size={18} className="text-black group-hover:text-white transition-colors sm:w-5 sm:h-5" />}
                     </div>
                     <h3 className="font-serif text-lg sm:text-xl font-bold mb-2 sm:mb-3">
                       {service.title}
