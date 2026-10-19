@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Star, ChevronRight, BookOpen, Award, Send, Printer } from "lucide-react";
+import { ArrowRight, Star, ChevronRight, BookOpen, Award, Send } from "lucide-react";
 import { useBooks, useAuthors, useTestimonials, useServices } from "../hooks/useData";
 import { usePageContent } from "../hooks/usePageContent";
 import Reveal from "../components/RevealSection";
@@ -164,16 +164,16 @@ export default function HomePage() {
               </div>
             </Reveal>
             <Reveal delay={150}>
-              <div className="relative w-1/2 mx-auto lg:w-[30%]">
+              <div className="relative">
                 <SmartImage
                   src={content.about_intro.image}
                   alt="Bookshelves"
                   className="aspect-[4/5] rounded-lg sm:rounded-lg md:rounded-none"
-                  imgClassName="w-full h-full object-cover rounded-lg sm:rounded-lg md:rounded-none shadow-lg shadow-neutral-900/10"
+                  imgClassName="w-full h-full object-cover"
                 />
-                <div className="absolute -bottom-4 sm:-bottom-5 -left-3 sm:-left-5 bg-white p-3 sm:p-4 shadow-xl rounded-xl sm:rounded-xl md:rounded-none max-w-[140px] sm:max-w-[180px]">
-                  <p className="font-serif text-2xl sm:text-3xl font-bold">{content.about_intro.stat_value}</p>
-                  <p className="text-[11px] sm:text-xs text-neutral-500">{content.about_intro.stat_label}</p>
+                <div className="absolute -bottom-4 sm:-bottom-6 -left-2 sm:-left-6 bg-white p-4 sm:p-6 shadow-xl rounded-xl sm:rounded-xl md:rounded-none max-w-[180px] sm:max-w-[240px]">
+                  <p className="font-serif text-3xl sm:text-4xl font-bold">{content.about_intro.stat_value}</p>
+                  <p className="text-xs sm:text-sm text-neutral-500">{content.about_intro.stat_label}</p>
                 </div>
               </div>
             </Reveal>
@@ -217,7 +217,6 @@ export default function HomePage() {
                       {service.icon === "PenTool" && <BookOpen size={18} className="text-black group-hover:text-white transition-colors sm:w-5 sm:h-5" />}
                       {service.icon === "CheckCircle" && <Award size={18} className="text-black group-hover:text-white transition-colors sm:w-5 sm:h-5" />}
                       {service.icon === "Palette" && <Star size={18} className="text-black group-hover:text-white transition-colors sm:w-5 sm:h-5" />}
-                      {service.icon === "Printer" && <Printer size={18} className="text-black group-hover:text-white transition-colors sm:w-5 sm:h-5" />}
                     </div>
                     <h3 className="font-serif text-lg sm:text-xl font-bold mb-2 sm:mb-3">
                       {service.title}
